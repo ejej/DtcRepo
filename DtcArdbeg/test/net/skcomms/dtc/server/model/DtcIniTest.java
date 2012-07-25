@@ -1,5 +1,10 @@
 package net.skcomms.dtc.server.model;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -41,6 +46,28 @@ public class DtcIniTest {
     System.out.println(ini.getIps());
     Assert.assertEquals(10, ini.getIps().size());
 
+  }
+
+  @Test
+  public void testMap() {
+    Map<String, String> map = new HashMap<String, String>();
+    Map<String, String> linkedMap = new LinkedHashMap<String, String>();
+
+    String src = "10.141.144.196=LB;10.171.145.213=idx;10.141.148.191=search1;10.141.148.192=search2;10.141.148.193=search3;10.141.148.194=search4;10.141.242.31=test";
+    String[] split1 = src.split(";");
+    for (String item : split1) {
+      String[] split2 = item.split("=");
+      map.put(split2[0], split2[1]);
+      linkedMap.put(split2[0], split2[1]);
+    }
+
+    for (Entry<String, String> entry : map.entrySet()) {
+      System.out.println("key : " + entry.getKey() + " value : " + entry.getValue());
+    }
+
+    for (Entry<String, String> entry : linkedMap.entrySet()) {
+      System.out.println("key : " + entry.getKey() + " value : " + entry.getValue());
+    }
   }
 
 }

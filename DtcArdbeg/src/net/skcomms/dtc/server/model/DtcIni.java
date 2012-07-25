@@ -5,7 +5,7 @@ package net.skcomms.dtc.server.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -36,10 +36,10 @@ public class DtcIni {
 
   private final List<String> errors = new ArrayList<String>();
 
-  private final Map<String, String> ips = new HashMap<String, String>();
+  private final Map<String, String> ips = new LinkedHashMap<String, String>();
 
   public void addErrorMessage(String message) {
-    this.errors.add(message);
+    errors.add(message);
   }
 
   public DtcRequestMeta createRequestInfo() {
@@ -63,10 +63,10 @@ public class DtcIni {
 
     do {
       if (matcher.group(1) != null) {
-        this.ips.put(matcher.group(1), "");
+        ips.put(matcher.group(1), "");
       }
       if (matcher.group(4) != null) {
-        this.ips.put(matcher.group(4), (matcher.group(8) == null ? "" : matcher.group(8)));
+        ips.put(matcher.group(4), (matcher.group(8) == null ? "" : matcher.group(8)));
       }
     } while (matcher.find());
   }
@@ -76,7 +76,7 @@ public class DtcIni {
    * @return
    */
   public DtcBaseProperty getBaseProp(String key) {
-    for (DtcBaseProperty prop : this.baseProps) {
+    for (DtcBaseProperty prop : baseProps) {
       if (prop.getKey().equals(key)) {
         return prop;
       }
@@ -89,19 +89,19 @@ public class DtcIni {
   }
 
   public String getCharset() {
-    return this.charset;
+    return charset;
   }
 
   public List<String> getErrors() {
-    return Collections.unmodifiableList(this.errors);
+    return Collections.unmodifiableList(errors);
   }
 
   public Map<String, String> getIps() {
-    return this.ips;
+    return ips;
   }
 
   public List<String> getListAttrs() {
-    return Collections.unmodifiableList(this.listAttrs);
+    return Collections.unmodifiableList(listAttrs);
   }
 
   public String getProtocol() {
@@ -110,7 +110,7 @@ public class DtcIni {
   }
 
   public DtcRequestProperty getRequestProp(String key) {
-    for (DtcRequestProperty prop : this.requestProps) {
+    for (DtcRequestProperty prop : requestProps) {
       if (prop.getKey().equals(key)) {
         return prop;
       }
@@ -119,11 +119,11 @@ public class DtcIni {
   }
 
   public List<DtcRequestProperty> getRequestProps() {
-    return Collections.unmodifiableList(this.requestProps);
+    return Collections.unmodifiableList(requestProps);
   }
 
   public DtcResponseProperty getResponseProp(String key) {
-    for (DtcResponseProperty prop : this.responseProps) {
+    for (DtcResponseProperty prop : responseProps) {
       if (prop.getFieldName().equals(key)) {
         return prop;
       }
@@ -132,12 +132,12 @@ public class DtcIni {
   }
 
   public List<DtcResponseProperty> getResponseProps() {
-    return this.responseProps;
+    return responseProps;
   }
 
   public List<DtcResponseProperty> getResultHeaderProps() {
     List<DtcResponseProperty> headerProps = new ArrayList<DtcResponseProperty>();
-    for (DtcResponseProperty prop : this.responseProps) {
+    for (DtcResponseProperty prop : responseProps) {
       if (!prop.getAttrs().contains("LIST_FIELD")) {
         headerProps.add(prop);
       }
@@ -147,7 +147,7 @@ public class DtcIni {
 
   public List<DtcResponseProperty> getResultListProps() {
     List<DtcResponseProperty> headerProps = new ArrayList<DtcResponseProperty>();
-    for (DtcResponseProperty prop : this.responseProps) {
+    for (DtcResponseProperty prop : responseProps) {
       if (prop.getAttrs().contains("LIST_FIELD")) {
         headerProps.add(prop);
       }
@@ -159,7 +159,7 @@ public class DtcIni {
    * @param dtcProperty
    */
   public void setBaseProp(DtcBaseProperty prop) {
-    this.baseProps.add(prop);
+    baseProps.add(prop);
     if (prop.getKey().equals("IP")) {
       this.detectIps(prop);
     }
@@ -170,15 +170,15 @@ public class DtcIni {
   }
 
   public void setListAttr(String attr) {
-    this.listAttrs.add(attr);
+    listAttrs.add(attr);
   }
 
   public void setRequestProp(DtcRequestProperty prop) {
-    this.requestProps.add(prop);
+    requestProps.add(prop);
   }
 
   public void setResponseProp(DtcResponseProperty prop) {
-    this.responseProps.add(prop);
+    responseProps.add(prop);
   }
 
   private void setupIpInfo(DtcRequestMeta requestInfo) {
