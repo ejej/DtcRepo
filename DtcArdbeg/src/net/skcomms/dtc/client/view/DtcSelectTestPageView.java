@@ -34,11 +34,12 @@ public class DtcSelectTestPageView extends Window {
 
   private TreeGrid treeGrid;
   private TreeGridField field;
-  private Tree tree = new Tree();
+  private final Tree tree = new Tree();
 
-  private VLayout backgroundLayout;
-  private HLayout serviceLayout; //
-  private VLayout serviceListLayout;
+  private final VLayout backgroundLayout;
+  private final HLayout serviceLayout; //
+  private final VLayout serviceListLayout;
+  private final VLayout visitedPageLayout;
 
   public DtcSelectTestPageView() {
     this.backgroundLayout = new VLayout();
@@ -47,16 +48,26 @@ public class DtcSelectTestPageView extends Window {
     this.backgroundLayout.setShowEdges(true);
 
     this.serviceLayout = new HLayout();
+    this.serviceLayout.setStyleName("serviceLayout");
     this.serviceLayout.setWidth100();
     this.serviceLayout.setHeight(470);
     this.serviceLayout.setShowEdges(true);
 
     this.serviceListLayout = new VLayout();
+    this.serviceListLayout.setStyleName("serviceListLayout");
     this.serviceListLayout.setHeight100();
     this.serviceListLayout.setWidth(400);
     this.serviceListLayout.setShowEdges(true);
 
+    this.visitedPageLayout = new VLayout();
+    this.visitedPageLayout.setStyleName("visitedPageLayout");
+    this.visitedPageLayout.setHeight100();
+    this.visitedPageLayout.setWidth(365);
+    this.visitedPageLayout.setShowEdges(true);
+
     this.serviceLayout.addMember(this.serviceListLayout);
+    this.serviceLayout.addMember(this.visitedPageLayout);
+
     this.backgroundLayout.addMember(this.serviceLayout);
     this.addItem(this.backgroundLayout);
 
