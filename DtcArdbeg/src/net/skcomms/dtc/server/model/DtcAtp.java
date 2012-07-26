@@ -106,6 +106,10 @@ public class DtcAtp {
     return bos.toByteArray();
   }
 
+  public List<DtcAtpRecord> getRecords() {
+    return this.records;
+  }
+
   public String getVersion() {
     return this.version;
   }

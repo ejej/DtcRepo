@@ -31,7 +31,9 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -43,6 +45,7 @@ import javax.servlet.http.HttpServletResponse;
 import net.skcomms.dtc.client.model.DtcResponse;
 import net.skcomms.dtc.client.service.DtcService;
 import net.skcomms.dtc.server.model.DtcAtp;
+import net.skcomms.dtc.server.model.DtcAtpRecord;
 import net.skcomms.dtc.server.model.DtcIni;
 import net.skcomms.dtc.server.model.DtcLog;
 import net.skcomms.dtc.server.util.DtcHelper;
@@ -60,6 +63,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 @SuppressWarnings("serial")
 public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
+  private static final byte FEILD_DELIMETER = 0x10;
 
   static String createDtcResponse(DtcRequest dtcRequest) throws IOException {
     InputStream is = DtcServiceImpl.sendHttpRequest(dtcRequest);
@@ -106,7 +110,7 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
     Socket socket = this.openSocket(request);
     try {
 
-      DtcAtp atpRequest = DtcAtpFactory.createRequest(request, ini);
+      DtcAtp atpRequest = DtcAtpFactory.createRequest(request);
       System.out.println("ATP REQUEST:" + atpRequest);
       socket.getOutputStream().write(atpRequest.getBytes(request.getCharset()));
       socket.getOutputStream().flush();
@@ -200,6 +204,8 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
     this.preProcessDtcRequest(request);
     DtcResponse response = new DtcResponse();
 
+    response.setRequest(request);
+
     DtcIni ini = DtcServiceImpl.getIni(request.getPath());
     Date startTime = new Date();
     String result = this.getHtmlResponse(request, ini);
@@ -244,8 +250,57 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
     return new Socket(ip, Integer.parseInt(port));
   }
 
-  private void preProcessDtcRequest(DtcRequest request) {
-    request.getQuery();
+  private void preProcessDtcRequest(DtcRequest request) throws FileNotFoundException, IOException {
+
+    Map<String, String[]> params = new HashMap<String, String[]>();
+    params.put("path", new String[] { "/kkeywords/204.ini" });
+    params.put("charset", new String[] { "euc-kr" });
+    params.put("appName", new String[] { "KKEYWORDSD" });
+    params.put("apiNumber", new String[] { "100" });
+    params.put("APIVersion", new String[] { "204" });
+    params.put("Nativequery", new String[] { request.getQuery() });
+    params.put("RevisionLevel", new String[] { "1" });
+    params.put("FindKeywordAlias", new String[] { "Y" });
+    params.put("FindKeywordAdult", new String[] { "Y" });
+    params.put("FindKeywordList", new String[] { "Y" });
+    params.put("Port", new String[] { "7777" });
+    params.put("IP", new String[] { "10.141.11.143" });
+
+    DtcRequest cndRequest = DtcRequestHttpAdapter.createDtcRequestFromHttpRequest(params);
+
+    Socket socket = this.openSocket(cndRequest);
+
+    try {
+
+      DtcAtp atpRequest = DtcAtpFactory.createRequest(cndRequest);
+      System.out.println("ATP REQUEST:" + atpRequest);
+      socket.getOutputStream().write(atpRequest.getBytes(cndRequest.getCharset()));
+      socket.getOutputStream().flush();
+
+      DtcAtp cndResponse = DtcAtpFactory.createResponse(socket.getInputStream(),
+          request.getCharset());
+      List<DtcAtpRecord> cndRecords = cndResponse.getRecords();
+
+      StringBuilder cndQuery = new StringBuilder();
+      cndQuery.append(cndRecords.get(10).getFields().get(0));
+      cndQuery.append((char) DtcServiceImpl.FEILD_DELIMETER);
+      cndQuery.append(cndRecords.get(11).getFields().get(0));
+      cndQuery.append((char) DtcServiceImpl.FEILD_DELIMETER);
+      cndQuery.append(cndRecords.get(12).getFields().get(0));
+      cndQuery.append((char) DtcServiceImpl.FEILD_DELIMETER);
+      cndQuery.append(cndRecords.get(13).getFields().get(0));
+      cndQuery.append((char) DtcServiceImpl.FEILD_DELIMETER);
+      cndQuery.append(cndRecords.get(14).getFields().get(0));
+      cndQuery.append((char) DtcServiceImpl.FEILD_DELIMETER);
+      cndQuery.append(cndRecords.get(15).getFields().get(0));
+
+      // System.out.println(cndQuery.toString());
+
+      request.setCndQuery(cndQuery.toString());
+
+    } finally {
+      socket.close();
+    }
 
   }
 

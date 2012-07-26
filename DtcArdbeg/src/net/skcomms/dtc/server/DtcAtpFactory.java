@@ -6,7 +6,6 @@ import java.util.List;
 
 import net.skcomms.dtc.server.model.DtcAtp;
 import net.skcomms.dtc.server.model.DtcAtpRecord;
-import net.skcomms.dtc.server.model.DtcIni;
 import net.skcomms.dtc.server.util.DtcHelper;
 import net.skcomms.dtc.shared.DtcRequest;
 import net.skcomms.dtc.shared.DtcRequestParameter;
@@ -34,9 +33,9 @@ public class DtcAtpFactory {
     atp.addRecord(record);
   }
 
-  public static DtcAtp createRequest(DtcRequest request, DtcIni ini) {
+  public static DtcAtp createRequest(DtcRequest request) {
     DtcAtp atp = new DtcAtp();
-    DtcAtpFactory.setSignature(ini, atp);
+    DtcAtpFactory.setSignature(request, atp);
     DtcAtpFactory.addDummyRecords(atp);
     DtcAtpFactory.addArguments(request, atp);
     atp.setBinary(new byte[0]);
@@ -47,9 +46,9 @@ public class DtcAtpFactory {
     return DtcAtpParser.parse(is, charset);
   }
 
-  private static void setSignature(DtcIni ini, DtcAtp atp) {
-    String sign = "ATP/1.2 " + ini.getBaseProp("APP_NAME").getValue() + " "
-        + ini.getBaseProp("API_NUM").getValue();
+  private static void setSignature(DtcRequest request, DtcAtp atp) {
+    String sign = "ATP/1.2 " + request.getAppName() + " "
+        + request.getApiNumber();
     atp.setSignature(sign);
   }
 }

@@ -89,7 +89,7 @@ public class DtcAtpParserTest {
     String filePath = DtcPathHelper.getRootPath() + "/kcbbs/blog.100.xml.ini";
     DtcIni ini = new DtcIniFactory().createFrom(filePath);
 
-    DtcAtp dtcAtp = DtcAtpFactory.createRequest(request, ini);
+    DtcAtp dtcAtp = DtcAtpFactory.createRequest(request);
     this.assertAtp(dtcAtp.getBytes(ini.getCharacterSet()));
   }
 

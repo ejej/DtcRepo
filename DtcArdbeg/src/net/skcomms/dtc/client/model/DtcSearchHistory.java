@@ -6,6 +6,8 @@ import java.util.List;
 
 import net.skcomms.dtc.shared.DtcRequestParameter;
 
+import com.google.gwt.http.client.URL;
+
 public class DtcSearchHistory {
 
   private static DtcSearchHistory create(String path, Date time, List<DtcRequestParameter> params,
@@ -49,7 +51,7 @@ public class DtcSearchHistory {
         throw new IllegalArgumentException("Error: Invalid format near: " + elements[i]);
       }
       DtcRequestParameter param = new DtcRequestParameter(pair[0], null,
-          ((pair.length == 2) ? pair[1] : ""));
+          ((pair.length == 2) ? URL.decode(pair[1]) : ""));
       params.add(param);
     }
 
@@ -102,7 +104,7 @@ public class DtcSearchHistory {
     for (DtcRequestParameter param : this.params) {
       result.append(param.getKey());
       result.append(DtcSearchHistory.FORM_VALUE_DELIMETER);
-      result.append(param.getValue() == null ? "" : param.getValue());
+      result.append(param.getValue() == null ? "" : URL.encode(param.getValue()));
       result.append(DtcSearchHistory.FORM_FIELD_DELIMETER);
     }
 

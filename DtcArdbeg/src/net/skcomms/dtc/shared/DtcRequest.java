@@ -59,6 +59,12 @@ public class DtcRequest implements Serializable {
     this.cndFieldName = cndFieldName;
   }
 
+  public void setCndQuery(String query) {
+    int index = this.requestParameter
+        .indexOf(new DtcRequestParameter(this.cndFieldName, null, null));
+    this.requestParameter.get(index).setValue(query);
+  }
+
   public void setEncoding(String encoding) {
     this.encoding = encoding;
   }
