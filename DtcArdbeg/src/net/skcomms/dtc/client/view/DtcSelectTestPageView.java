@@ -1,6 +1,8 @@
 package net.skcomms.dtc.client.view;
 
 import com.smartgwt.client.widgets.Window;
+import com.smartgwt.client.widgets.grid.ListGrid;
+import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.tree.Tree;
@@ -39,7 +41,9 @@ public class DtcSelectTestPageView extends Window {
   private final VLayout backgroundLayout;
   private final HLayout serviceLayout; //
   private final VLayout serviceListLayout;
-  private final VLayout visitedPageLayout;
+
+  private VLayout visitedPageListLayout;
+  private ListGrid visitedPageListGrid;
 
   public DtcSelectTestPageView() {
     this.backgroundLayout = new VLayout();
@@ -59,14 +63,10 @@ public class DtcSelectTestPageView extends Window {
     this.serviceListLayout.setWidth(400);
     this.serviceListLayout.setShowEdges(true);
 
-    this.visitedPageLayout = new VLayout();
-    this.visitedPageLayout.setStyleName("visitedPageLayout");
-    this.visitedPageLayout.setHeight100();
-    this.visitedPageLayout.setWidth(365);
-    this.visitedPageLayout.setShowEdges(true);
+    this.initVisitedPageListLayout();
 
     this.serviceLayout.addMember(this.serviceListLayout);
-    this.serviceLayout.addMember(this.visitedPageLayout);
+    this.serviceLayout.addMember(this.visitedPageListLayout);
 
     this.backgroundLayout.addMember(this.serviceLayout);
     this.addItem(this.backgroundLayout);
@@ -107,5 +107,31 @@ public class DtcSelectTestPageView extends Window {
     // this.treeGrid.setData(this.tree);
     // this.addItem(this.treeGrid);
     // this.treeGrid.draw();
+  }
+
+  private void initVisitedPageListGrid() {
+    this.visitedPageListGrid = new ListGrid();
+    this.visitedPageListGrid.setWidth(365);
+    this.visitedPageListGrid.setHeight100();
+    this.visitedPageListGrid.setTop(50);
+    this.visitedPageListGrid.setShowAllRecords(true);
+    this.visitedPageListGrid.setShowEmptyMessage(true);
+    this.visitedPageListGrid.setEmptyMessage("<br>Click the <b>Set data</b> button to populate this grid.");
+
+    ListGridField nameField = new ListGridField("countryName", "Country", 120);
+    ListGridField capitalField = new ListGridField("capital", "Capital");
+    this.visitedPageListGrid.setFields(nameField, capitalField);
+  }
+
+  private void initVisitedPageListLayout() {
+    this.initVisitedPageListGrid();
+
+    this.visitedPageListLayout = new VLayout();
+    this.visitedPageListLayout.setStyleName("visitedPageLayout");
+    this.visitedPageListLayout.setHeight100();
+    this.visitedPageListLayout.setWidth(365);
+    this.visitedPageListLayout.setShowEdges(true);
+
+    this.visitedPageListLayout.addMember(this.visitedPageListGrid);
   }
 }
