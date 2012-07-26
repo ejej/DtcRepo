@@ -2,6 +2,7 @@ package net.skcomms.dtc.server.model;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,8 +11,6 @@ import org.apache.log4j.Logger;
 public class DtcAtp {
 
   private static final byte LT = 0x1E;
-
-  private static final byte FT = 0x1F;
 
   private static Logger logger = Logger.getLogger(DtcAtp.class);
 
@@ -95,17 +94,11 @@ public class DtcAtp {
   public byte[] getBytes(String charset) throws IOException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-    bos.write(this.signature.getBytes());
-    bos.write(DtcAtp.LT);
-    bos.write(DtcAtp.LT);
+    this.writeSignature(bos);
+    this.writeResponseHeader(bos);
 
-    for (DtcAtpRecord rec : this.records) {
-      bos.write(rec.getBytes(charset));
-    }
-    bos.write(DtcAtp.LT);
-    bos.write(Integer.toString(this.binary.length).getBytes());
-    bos.write(DtcAtp.LT);
-    bos.write(this.binary);
+    this.writeArgumentList(bos, charset);
+    this.writeBinaryData(bos);
 
     if (DtcAtp.logger.isDebugEnabled()) {
       DtcAtp.logger.debug("Charaset:" + charset);
@@ -155,6 +148,28 @@ public class DtcAtp {
     return "Signature:[" + this.signature + "]\nResponseCode:[" + this.responseCode
         + "]\nRecords:" + this.records.toString()
         + "\nBinarySize:[" + this.binary.length + "]";
+  }
+
+  private void writeArgumentList(OutputStream os, String charset) throws IOException {
+    for (DtcAtpRecord rec : this.records) {
+      os.write(rec.getBytes(charset));
+    }
+    os.write(DtcAtp.LT);
+  }
+
+  private void writeBinaryData(OutputStream os) throws IOException {
+    os.write(Integer.toString(this.binary.length).getBytes());
+    os.write(DtcAtp.LT);
+    os.write(this.binary);
+  }
+
+  private void writeResponseHeader(OutputStream os) throws IOException {
+    os.write(DtcAtp.LT);
+  }
+
+  private void writeSignature(OutputStream os) throws IOException {
+    os.write(this.signature.getBytes());
+    os.write(DtcAtp.LT);
   }
 
 }

@@ -1,0 +1,39 @@
+package net.skcomms.dtc.server.atp;
+
+parser code
+{:
+:}
+
+action code
+{:
+:}
+
+terminal        LT,  FT, SP;
+terminal        REASON, STRING, DECIMAL, DOT;
+terminal        ATP, SLASH;
+
+non terminal    String      protocol, response;
+non terminal    String      responseLine, responseHeader, argumentData;
+non terminal    String      signature, responseCode, reason;
+non terminal    Integer     major, minor;
+non terminal    String      version;
+non terminal    String      argumentList;
+non terminal    String      record, field, fieldList;
+non terminal    Object      binaryData;
+
+protocol        ::= response;
+response        ::= responseLine responseHeader LT argumentData;
+responseLine    ::= signature SP responseCode SP reason LT;
+responseCode    ::= DECIMAL;
+signature       ::= ATP SLASH  version;
+version         ::= major DOT minor;
+major           ::= DECIMAL;
+minor           ::= DECIMAL;
+reason          ::= REASON;
+responseHeader  ::= argumentList;
+argumentData    ::= argumentList LT binaryData;
+argumentList    ::= | record argumentList;
+record          ::= fieldList LT;
+fieldList       ::= field | field fieldList;
+field           ::= STRING FT;
+binaryData      ::= DECIMAL LT;
