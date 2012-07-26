@@ -21,6 +21,8 @@ public class DtcAtp {
 
   private String signature;
 
+  private String charset;
+
   public void addRecord(DtcAtpRecord record) {
     this.records.add(record);
   }
@@ -106,6 +108,10 @@ public class DtcAtp {
     return bos.toByteArray();
   }
 
+  public String getCharset() {
+    return this.charset;
+  }
+
   public List<DtcAtpRecord> getRecords() {
     return this.records;
   }
@@ -117,6 +123,10 @@ public class DtcAtp {
   public void setBinary(byte[] bytes) {
     this.binary = bytes;
     System.out.println("binary:[" + new String(bytes) + "]");
+  }
+
+  public void setCharset(String charset) {
+    this.charset = charset;
   }
 
   public void setResponseCode(int responseCode) {

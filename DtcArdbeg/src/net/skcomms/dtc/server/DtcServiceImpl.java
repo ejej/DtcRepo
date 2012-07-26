@@ -31,9 +31,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -56,6 +54,7 @@ import net.skcomms.dtc.shared.DtcRequest;
 import net.skcomms.dtc.shared.DtcRequestMeta;
 import net.skcomms.dtc.shared.DtcServiceVerifier;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -63,6 +62,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 @SuppressWarnings("serial")
 public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
+
   private static final byte FEILD_DELIMETER = 0x10;
 
   static String createDtcResponse(DtcRequest dtcRequest) throws IOException {
@@ -106,6 +106,8 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
 
   private EntityManagerFactory emf;
 
+  private final Logger logger = Logger.getLogger(DtcServiceImpl.class);
+
   private String createAtpResponse(DtcRequest request, DtcIni ini) throws IOException {
     Socket socket = this.openSocket(request);
     try {
@@ -137,6 +139,18 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
     File[] files = file.listFiles(new DtcHelper.DtcNodeFilter());
     Arrays.sort(files, DtcHelper.NODE_COMPARATOR);
     return files;
+  }
+
+  private String getCndQuery(String nativeQuery) throws FileNotFoundException, IOException,
+      UnknownHostException {
+    DtcRequest cndRequest = DtcRequestHttpAdapter.createCndRequest(nativeQuery);
+
+    DtcAtp atpRequest = DtcAtpFactory.createRequest(cndRequest);
+    String ip = cndRequest.getRequestParameter("IP");
+    String port = cndRequest.getRequestParameter("Port");
+
+    DtcAtp cndResponse = this.sendAndReceiveAtp(atpRequest, ip, port);
+    return this.makeFormattedCndQuery(cndResponse);
   }
 
   @Override
@@ -244,6 +258,20 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
     manager.close();
   }
 
+  private String makeFormattedCndQuery(DtcAtp cndResponse) {
+    StringBuilder cndQuery = new StringBuilder();
+
+    for (DtcAtpRecord record : cndResponse.getRecords().subList(10, 16)) {
+      cndQuery.append(record.getFields().get(0));
+      cndQuery.append((char) DtcServiceImpl.FEILD_DELIMETER);
+    }
+    if (cndQuery.length() > 0) {
+      cndQuery.deleteCharAt(cndQuery.length() - 1);
+    }
+
+    return cndQuery.toString();
+  }
+
   private Socket openSocket(DtcRequest request) throws UnknownHostException, IOException {
     String ip = request.getRequestParameter("IP");
     String port = request.getRequestParameter("Port");
@@ -251,57 +279,28 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
   }
 
   private void preProcessDtcRequest(DtcRequest request) throws FileNotFoundException, IOException {
+    String cndQuery = this.getCndQuery(request.getQuery());
+    if (this.logger.isDebugEnabled()) {
+      this.logger.debug("NativeQuery:" + request.getQuery());
+      this.logger.debug("CndQuery:" + cndQuery);
+    }
+    request.setCndQuery(cndQuery);
+  }
 
-    Map<String, String[]> params = new HashMap<String, String[]>();
-    params.put("path", new String[] { "/kkeywords/204.ini" });
-    params.put("charset", new String[] { "euc-kr" });
-    params.put("appName", new String[] { "KKEYWORDSD" });
-    params.put("apiNumber", new String[] { "100" });
-    params.put("APIVersion", new String[] { "204" });
-    params.put("Nativequery", new String[] { request.getQuery() });
-    params.put("RevisionLevel", new String[] { "1" });
-    params.put("FindKeywordAlias", new String[] { "Y" });
-    params.put("FindKeywordAdult", new String[] { "Y" });
-    params.put("FindKeywordList", new String[] { "Y" });
-    params.put("Port", new String[] { "7777" });
-    params.put("IP", new String[] { "10.141.11.143" });
-
-    DtcRequest cndRequest = DtcRequestHttpAdapter.createDtcRequestFromHttpRequest(params);
-
-    Socket socket = this.openSocket(cndRequest);
-
+  private DtcAtp sendAndReceiveAtp(DtcAtp atpRequest, String ip, String port)
+      throws UnknownHostException, IOException {
+    DtcAtp cndResponse;
+    Socket socket = new Socket(ip, Integer.parseInt(port));
     try {
-
-      DtcAtp atpRequest = DtcAtpFactory.createRequest(cndRequest);
       System.out.println("ATP REQUEST:" + atpRequest);
-      socket.getOutputStream().write(atpRequest.getBytes(cndRequest.getCharset()));
+      socket.getOutputStream().write(atpRequest.getBytes(atpRequest.getCharset()));
       socket.getOutputStream().flush();
 
-      DtcAtp cndResponse = DtcAtpFactory.createResponse(socket.getInputStream(),
-          request.getCharset());
-      List<DtcAtpRecord> cndRecords = cndResponse.getRecords();
-
-      StringBuilder cndQuery = new StringBuilder();
-      cndQuery.append(cndRecords.get(10).getFields().get(0));
-      cndQuery.append((char) DtcServiceImpl.FEILD_DELIMETER);
-      cndQuery.append(cndRecords.get(11).getFields().get(0));
-      cndQuery.append((char) DtcServiceImpl.FEILD_DELIMETER);
-      cndQuery.append(cndRecords.get(12).getFields().get(0));
-      cndQuery.append((char) DtcServiceImpl.FEILD_DELIMETER);
-      cndQuery.append(cndRecords.get(13).getFields().get(0));
-      cndQuery.append((char) DtcServiceImpl.FEILD_DELIMETER);
-      cndQuery.append(cndRecords.get(14).getFields().get(0));
-      cndQuery.append((char) DtcServiceImpl.FEILD_DELIMETER);
-      cndQuery.append(cndRecords.get(15).getFields().get(0));
-
-      // System.out.println(cndQuery.toString());
-
-      request.setCndQuery(cndQuery.toString());
-
+      cndResponse = DtcAtpFactory.createResponse(socket.getInputStream(), atpRequest.getCharset());
     } finally {
       socket.close();
     }
-
+    return cndResponse;
   }
 
   @Autowired

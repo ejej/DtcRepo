@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,14 +18,14 @@ import net.skcomms.dtc.shared.DtcRequestParameter;
 
 public class DtcRequestHttpAdapter {
 
-  public static DtcRequest createDtcRequestFromHttpRequest(Map<String, String[]> params)
+  public static DtcRequest createDtcRequestFromHttpRequest(Map<String, String> params)
       throws IOException, FileNotFoundException {
     DtcRequest request = new DtcRequest();
 
-    request.setPath(params.get("path")[0]);
-    request.setEncoding(params.get("charset")[0]);
-    request.setAppName(params.get("appName")[0]);
-    request.setApiNumber(params.get("apiNumber")[0]);
+    request.setPath(params.get("path"));
+    request.setEncoding(params.get("charset"));
+    request.setAppName(params.get("appName"));
+    request.setApiNumber(params.get("apiNumber"));
 
     List<DtcRequestParameter> requestParams = DtcRequestHttpAdapter
         .getParametersFromParameterMap(params);
@@ -32,22 +34,53 @@ public class DtcRequestHttpAdapter {
   }
 
   public static List<DtcRequestParameter> getParametersFromParameterMap(
-      Map<String, String[]> urlParams)
+      Map<String, String> urlParams)
       throws IOException, FileNotFoundException {
-    DtcIni ini = DtcServiceImpl.getIni(urlParams.get("path")[0]);
+    DtcIni ini = DtcServiceImpl.getIni(urlParams.get("path"));
     List<DtcRequestParameter> params = new ArrayList<DtcRequestParameter>();
 
     for (DtcRequestProperty prop : ini.getRequestProps()) {
-      String value = urlParams.get(prop.getKey())[0];
+      String value = urlParams.get(prop.getKey());
       params.add(new DtcRequestParameter(prop.getKey(), null, value));
     }
-    params.add(new DtcRequestParameter("IP", null, urlParams.get("IP")[0]));
-    params.add(new DtcRequestParameter("Port", null, urlParams.get("Port")[0]));
+    params.add(new DtcRequestParameter("IP", null, urlParams.get("IP")));
+    params.add(new DtcRequestParameter("Port", null, urlParams.get("Port")));
 
     return params;
   }
 
   private final DtcRequest request;
+
+  private static Map<String, String> defaultCndParameters;
+  static {
+    Map<String, String> params = new HashMap<String, String>();
+    params.put("path", "/kkeywords/204.ini");
+    params.put("appName", "KKEYWORDSD");
+    params.put("apiNumber", "100");
+    params.put("APIVersion", "204");
+    params.put("Nativequery", "Coffee and Donut");
+    params.put("RevisionLevel", "1");
+    params.put("FindKeywordAlias", "Y");
+    params.put("FindKeywordAdult", "Y");
+    params.put("FindKeywordList", "Y");
+    params.put("charset", "euc-kr");
+    params.put("Port", "7777");
+    params.put("IP", "10.141.11.143");
+    DtcRequestHttpAdapter.defaultCndParameters = Collections.unmodifiableMap(params);
+  }
+
+  public static DtcRequest createCndRequest(String nativeQuery) throws FileNotFoundException,
+      IOException {
+    Map<String, String> params = DtcRequestHttpAdapter.getCndRequestParameters(nativeQuery);
+    return DtcRequestHttpAdapter.createDtcRequestFromHttpRequest(params);
+  }
+
+  public static Map<String, String> getCndRequestParameters(String nativeQuery) {
+    Map<String, String> params = new HashMap<String, String>(
+        DtcRequestHttpAdapter.defaultCndParameters);
+    params.put("Nativequery", nativeQuery);
+    return params;
+  }
 
   public DtcRequestHttpAdapter(DtcRequest request) {
     this.request = request;

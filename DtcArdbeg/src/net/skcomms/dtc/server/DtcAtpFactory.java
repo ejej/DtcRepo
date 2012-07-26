@@ -35,6 +35,7 @@ public class DtcAtpFactory {
 
   public static DtcAtp createRequest(DtcRequest request) {
     DtcAtp atp = new DtcAtp();
+    atp.setCharset(request.getCharset());
     DtcAtpFactory.setSignature(request, atp);
     DtcAtpFactory.addDummyRecords(atp);
     DtcAtpFactory.addArguments(request, atp);
