@@ -7,6 +7,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
 import com.smartgwt.client.types.Alignment;
+import com.smartgwt.client.types.Overflow;
 import com.smartgwt.client.widgets.events.ClickEvent;
 import com.smartgwt.client.widgets.events.ClickHandler;
 import com.smartgwt.client.widgets.grid.ListGrid;
@@ -76,15 +77,6 @@ public class DtcSearchHistoryGrid extends ListGrid{
 	    this.nameField.setCanGroupBy(false);
 	    this.nameField.setAlign(Alignment.CENTER);
 	    
-	    this.nameField.addRecordClickHandler(new RecordClickHandler() {
-			
-			@Override
-			public void onRecordClick(RecordClickEvent event) {
-				// TODO Auto-generated method stub
-				
-			}
-		});
-	    
 	    return this.nameField;
 	}
 	
@@ -95,12 +87,23 @@ public class DtcSearchHistoryGrid extends ListGrid{
 	    int index = 0;
 	    String formattedTime = new String();
 	    for (DtcSearchHistory param : this.params) {
-	    	GWT.log("SearchHistoryGrid : " + param.getFormattedString(param.serialize()));
 	    	formattedTime = DateTimeFormat.getFormat(PredefinedFormat.DATE_TIME_MEDIUM).format(param.getSearchTime());
 	    	records.add(new HistoryGridRecord(index++, formattedTime));
 	    }
 
 	    this.setData(records.toArray(new HistoryGridRecord[0]));
+	}
+
+	public void initialize() {
+	  this.setHeight100();
+	  this.setWidth(300);
+	  this.setShowAllRecords(true);
+	  this.setCanEdit(false);
+	  this.setBodyOverflow(Overflow.VISIBLE);
+	  this.setLeaveScrollbarGap(false);
+	  this.setCanAutoFitFields(false);
+	  this.setCanCollapseGroup(false);
+	  this.setFields(this.setupNameField());
 	}
 	
 }

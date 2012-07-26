@@ -11,7 +11,7 @@ public class DtcSearchHistoryDao {
 
   public static final String PREFIX = "DtcSearchHistoryDao.";
 
-  private static final int MAX_HISTORY_SIZE = 5;
+  private static final int MAX_HISTORY_SIZE = 10;
 
   public static String combineKey(DtcSearchHistory searchHistory) {
     return DtcSearchHistoryDao.combineKeyPrefix(searchHistory.getPath())

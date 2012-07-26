@@ -33,6 +33,8 @@ import com.smartgwt.client.widgets.grid.ListGridEditorContext;
 import com.smartgwt.client.widgets.grid.ListGridEditorCustomizer;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
+import com.smartgwt.client.widgets.grid.events.RecordClickEvent;
+import com.smartgwt.client.widgets.grid.events.RecordClickHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.VLayout;
 
@@ -218,6 +220,8 @@ public class DtcTestPageView {
     this.setupVLayoutLeft();
     this.setupHLayoutRight();
     this.setupContentsLayout();
+    
+    this.fireDtcTestPageViewAppeared();
 
     this.layout.redraw();
     this.layout.setVisible(true);
@@ -227,6 +231,12 @@ public class DtcTestPageView {
     for (DtcTestPageViewObserver observer : this.dtcTestPageViewObservers) {
       observer.onReadyRequestData();
     }
+  }
+  
+  private void fireDtcTestPageViewAppeared() {
+	for(DtcTestPageViewObserver observer : this.dtcTestPageViewObservers) {
+		observer.onDtcTestPageViewAppeared(this.requestInfo.getPath());
+	}
   }
 
   public List<DtcRequestParameter> getRequestParameters() {
@@ -416,17 +426,22 @@ public class DtcTestPageView {
 */
   private void setupSearchHistoryGrid() {
 	  this.searchHistoryGrid = new DtcSearchHistoryGrid();
-	  this.searchHistoryGrid.setHeight(250);
-	  this.searchHistoryGrid.setWidth(300);
-	  this.searchHistoryGrid.setShowAllRecords(true);
-	  this.searchHistoryGrid.setCanEdit(false);
-	  this.searchHistoryGrid.setBodyOverflow(Overflow.VISIBLE);
-	  this.searchHistoryGrid.setLeaveScrollbarGap(false);
-	  this.searchHistoryGrid.setCanAutoFitFields(false);
-	  this.searchHistoryGrid.setCanCollapseGroup(false);
-	  this.searchHistoryGrid.setFields(this.searchHistoryGrid.setupNameField());
+	  this.searchHistoryGrid.initialize();
+	  this.searchHistoryGrid.addRecordClickHandler(new RecordClickHandler() {
+      @Override
+      public void onRecordClick(RecordClickEvent event) {
+        fireHistoryGridRecordClicked(event.getRecordNum());
+      }
+	    
+	  });
   }
-
+  
+  private void fireHistoryGridRecordClicked(int recordNum) {
+    for (DtcTestPageViewObserver observer : this.dtcTestPageViewObservers) {
+      observer.onHistoryGridRecordClicked(recordNum);
+    }
+  }
+  
   private void setupVLayoutLeft() {
     this.setupChronoView();
     this.setupRequestFormGrid();
@@ -496,5 +511,9 @@ public class DtcTestPageView {
   public void updateSearchHistory(List<DtcSearchHistory> searchHistories) {
 	  this.searchHistoryGrid.recordUpdate(searchHistories);
 	  this.vLayoutLeft.redraw();
+  }
+
+  public void updateRequest(DtcSearchHistory dtcSearchHistory) {
+    //TODO Request 필드 레코드를 다시 그려야 한다. 7/27 진행 예정
   }
 }

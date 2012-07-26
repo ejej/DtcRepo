@@ -86,6 +86,7 @@ public class DtcTestPageController implements DtcNodeObserver, DtcTestPageModelO
 
     this.testPageView.setRequestMeta(requestMeta);
     this.testPageView.draw();
+    GWT.log("TestPageViewDraw~!!");
   }
 
   @Override
@@ -141,5 +142,15 @@ public class DtcTestPageController implements DtcNodeObserver, DtcTestPageModelO
     GWT.log(convertedHTML);
     this.testPageView.setHTMLData(convertedHTML);
   }
+
+@Override
+public void onDtcTestPageViewAppeared(String path) {
+}
+
+@Override
+public void onHistoryGridRecordClicked(int recordNum) {
+  // TODO Auto-generated method stub
+  
+}
 
 }
