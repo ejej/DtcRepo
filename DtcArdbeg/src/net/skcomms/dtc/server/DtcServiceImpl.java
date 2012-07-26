@@ -31,7 +31,10 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -128,9 +131,8 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException,
       IOException {
-    @SuppressWarnings("unchecked")
-    DtcRequest request = DtcRequestHttpAdapter.createDtcRequestFromHttpRequest(req
-        .getParameterMap());
+    Map<String, String> params = this.rebuildParameterMap(req);
+    DtcRequest request = DtcRequestHttpAdapter.createDtcRequest(params);
     DtcResponse response = this.getDtcResponse(request);
     this.writeHtmlResponse(resp, response, request.getCharset());
   }
@@ -285,6 +287,16 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
       this.logger.debug("CndQuery:" + cndQuery);
     }
     request.setCndQuery(cndQuery);
+  }
+
+  private Map<String, String> rebuildParameterMap(HttpServletRequest req) {
+    Map<String, String> params = new HashMap<String, String>();
+    for (Object element : req.getParameterMap().entrySet()) {
+      @SuppressWarnings("unchecked")
+      Entry<String, String[]> entry = (Entry<String, String[]>) element;
+      params.put(entry.getKey(), entry.getValue()[0]);
+    }
+    return params;
   }
 
   private DtcAtp sendAndReceiveAtp(DtcAtp atpRequest, String ip, String port)

@@ -18,7 +18,7 @@ import net.skcomms.dtc.shared.DtcRequestParameter;
 
 public class DtcRequestHttpAdapter {
 
-  public static DtcRequest createDtcRequestFromHttpRequest(Map<String, String> params)
+  public static DtcRequest createDtcRequest(Map<String, String> params)
       throws IOException, FileNotFoundException {
     DtcRequest request = new DtcRequest();
 
@@ -27,14 +27,12 @@ public class DtcRequestHttpAdapter {
     request.setAppName(params.get("appName"));
     request.setApiNumber(params.get("apiNumber"));
 
-    List<DtcRequestParameter> requestParams = DtcRequestHttpAdapter
-        .getParametersFromParameterMap(params);
+    List<DtcRequestParameter> requestParams = DtcRequestHttpAdapter.getListFromMap(params);
     request.setRequestParameters(requestParams);
     return request;
   }
 
-  public static List<DtcRequestParameter> getParametersFromParameterMap(
-      Map<String, String> urlParams)
+  private static List<DtcRequestParameter> getListFromMap(Map<String, String> urlParams)
       throws IOException, FileNotFoundException {
     DtcIni ini = DtcServiceImpl.getIni(urlParams.get("path"));
     List<DtcRequestParameter> params = new ArrayList<DtcRequestParameter>();
@@ -72,7 +70,7 @@ public class DtcRequestHttpAdapter {
   public static DtcRequest createCndRequest(String nativeQuery) throws FileNotFoundException,
       IOException {
     Map<String, String> params = DtcRequestHttpAdapter.getCndRequestParameters(nativeQuery);
-    return DtcRequestHttpAdapter.createDtcRequestFromHttpRequest(params);
+    return DtcRequestHttpAdapter.createDtcRequest(params);
   }
 
   public static Map<String, String> getCndRequestParameters(String nativeQuery) {
