@@ -114,12 +114,10 @@ public class DtcAtp {
 
   public void setBinary(byte[] bytes) {
     this.binary = bytes;
-    System.out.println("binary:[" + new String(bytes) + "]");
   }
 
   public void setResponseCode(int responseCode) {
     this.responseCode = responseCode;
-    System.out.println("responseCode:[" + responseCode + "]");
   }
 
   public void setSignature(String signature) {

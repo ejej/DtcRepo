@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import java_cup.runtime.Symbol;
@@ -35,18 +36,17 @@ public class AtpLexTest {
 
     OutputStream os_socket = soc.getOutputStream(); // 소켓에 쓰고
     os_socket.write(bs);
-    os_socket.flush();
-
+    Date start = new Date();
     byte[] bytes = DtcHelper.readAllBytes(soc.getInputStream());
-    System.out.println(new String(bytes));
-
+    Date time = new Date();
+    System.out.println("Read Time:" + Double.toString((time.getTime() - start.getTime()) / 1000));
     AtpLex lex = new AtpLex(new InputStreamReader(new ByteArrayInputStream(bytes), "utf-8"));
+
     while (true) {
-      Symbol symbol = lex.debug_next_token();
+      Symbol symbol = lex.next_token();
       if (symbol.sym == AtpSym.EOF) {
         break;
       }
-      System.out.println(symbol.value);
     }
   }
 
@@ -64,23 +64,24 @@ public class AtpLexTest {
   public void testAtp() throws IOException {
 
     String[] messages = {
-        "ATP/1.2 KCBBSD 0" + AtpLexTest.LT + AtpLexTest.LT + AtpLexTest.LT +
-            "0" + AtpLexTest.LT,
-        // "ATP/1.2 KCBBSD 100" + AtpLexTest.LT + AtpLexTest.LT +
-        // "" + AtpLexTest.FT +
-        // "" + AtpLexTest.FT +
-        // "" + AtpLexTest.FT +
-        // "" + AtpLexTest.FT + AtpLexTest.LT +
-        // "100" + AtpLexTest.FT + AtpLexTest.LT +
-        // "blog" + AtpLexTest.FT + AtpLexTest.LT +
-        // "1" + AtpLexTest.FT + AtpLexTest.LT +
-        // "1" + AtpLexTest.FT + AtpLexTest.LT +
-        // "TS" + AtpLexTest.FT + AtpLexTest.LT +
-        // "PD" + AtpLexTest.FT + AtpLexTest.LT +
-        // "256" + AtpLexTest.FT + AtpLexTest.LT +
-        // "TEST" + AtpLexTest.FT + AtpLexTest.LT +
-        // AtpLexTest.LT +
-        // "0" + AtpLexTest.LT
+        "ATP/1.2 KCBBSD 0" + AtpLexTest.LT + AtpLexTest.LT +
+            AtpLexTest.LT + "0"
+            + AtpLexTest.LT,
+        "ATP/1.2 KCBBSD 100" + AtpLexTest.LT + AtpLexTest.LT +
+            "" + AtpLexTest.FT +
+            "" + AtpLexTest.FT +
+            "" + AtpLexTest.FT +
+            "" + AtpLexTest.FT + AtpLexTest.LT +
+            "100" + AtpLexTest.FT + AtpLexTest.LT +
+            "blog" + AtpLexTest.FT + AtpLexTest.LT +
+            "1" + AtpLexTest.FT + AtpLexTest.LT +
+            "3" + AtpLexTest.FT + AtpLexTest.LT +
+            "TS" + AtpLexTest.FT + AtpLexTest.LT +
+            "PD" + AtpLexTest.FT + AtpLexTest.LT +
+            "256" + AtpLexTest.FT + AtpLexTest.LT +
+            "TEST" + AtpLexTest.FT + AtpLexTest.LT +
+            AtpLexTest.LT +
+            "0" + AtpLexTest.LT
     };
     for (String msg : messages) {
       this.assertAtp(msg.getBytes());
@@ -104,7 +105,7 @@ public class AtpLexTest {
     DtcRequest request = new DtcRequest();
     request.setRequestParameters(requestParameter);
 
-    String filePath = DtcHelper.getRootPath() + "kcbbs/blog.100.xml.ini";
+    String filePath = DtcHelper.getRootPath() + "kcbbs/blog.100.ini";
     DtcIni ini = new DtcIniFactory().createFrom(filePath);
 
     DtcAtp dtcAtp = DtcAtpFactory.createFrom(request, ini);

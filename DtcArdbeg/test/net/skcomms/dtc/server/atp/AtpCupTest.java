@@ -1,7 +1,7 @@
 package net.skcomms.dtc.server.atp;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -23,21 +23,26 @@ public class AtpCupTest {
 
   private static final String LT = Character.toString((char) 0x1E);
 
-  private static final String SP = Character.toString((char) 0x20);
-
   private static final String FT = Character.toString((char) 0x1F);
+
+  // private static final String LT = Character.toString((char) 0x0A);
+  //
+  // private static final String FT = Character.toString((char) 0x09);
+
+  private static final String SP = Character.toString((char) 0x20);
 
   private static final String RS = Character.toString((char) 0x1E);
 
   private void assertAtp(byte[] bs) throws Exception {
+    // 10.141.10.51 | 9100 - 싸이블로그
     Socket soc = new Socket("10.141.10.51", 9100);
 
     OutputStream os_socket = soc.getOutputStream(); // 소켓에 쓰고
     os_socket.write(bs);
     os_socket.flush();
 
-    DtcAtp atp = (DtcAtp) new AtpCup(new AtpLex(
-        new InputStreamReader(soc.getInputStream(), "utf-8"))).parse().value;
+    DtcAtp atp = (DtcAtp) new AtpCup(new AtpLex(new BufferedInputStream(soc.getInputStream()),
+        "utf-8")).parse().value;
 
     Assert.assertNotNull(atp);
     System.out.println(atp);
@@ -57,9 +62,9 @@ public class AtpCupTest {
   public void testAtp() throws Exception {
 
     String[] messages = {
-        // "ATP/1.2 KCBBSD 0" + AtpCupTest.LT + AtpCupTest.LT +
-        // AtpCupTest.LT + "0"
-        // + AtpCupTest.LT,
+        "ATP/1.2 KCBBSD 0" + AtpCupTest.LT + AtpCupTest.LT +
+            AtpCupTest.LT + "0"
+            + AtpCupTest.LT,
         "ATP/1.2 KCBBSD 100" + AtpCupTest.LT + AtpCupTest.LT +
             "" + AtpCupTest.FT +
             "" + AtpCupTest.FT +
@@ -68,7 +73,7 @@ public class AtpCupTest {
             "100" + AtpCupTest.FT + AtpCupTest.LT +
             "blog" + AtpCupTest.FT + AtpCupTest.LT +
             "1" + AtpCupTest.FT + AtpCupTest.LT +
-            "1" + AtpCupTest.FT + AtpCupTest.LT +
+            "3" + AtpCupTest.FT + AtpCupTest.LT +
             "TS" + AtpCupTest.FT + AtpCupTest.LT +
             "PD" + AtpCupTest.FT + AtpCupTest.LT +
             "256" + AtpCupTest.FT + AtpCupTest.LT +
@@ -99,7 +104,7 @@ public class AtpCupTest {
     DtcRequest request = new DtcRequest();
     request.setRequestParameters(requestParameter);
 
-    String filePath = DtcHelper.getRootPath() + "kcbbs/blog.100.xml.ini";
+    String filePath = DtcHelper.getRootPath() + "kcbbs/blog.100.ini";
     DtcIni ini = new DtcIniFactory().createFrom(filePath);
 
     DtcAtp dtcAtp = DtcAtpFactory.createFrom(request, ini);

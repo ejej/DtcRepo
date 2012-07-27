@@ -1,39 +1,80 @@
 package net.skcomms.dtc.server.atp;
 
+import net.skcomms.dtc.server.model.DtcAtp;
+import net.skcomms.dtc.server.model.DtcAtpRecord;
+
 parser code
 {:
+  private DtcAtp atp = new DtcAtp();
+  
+  public DtcAtp getAtp() {
+    return atp;
+  }
 :}
 
 action code
 {:
 :}
 
-terminal        LT,  FT, SP;
-terminal        REASON, STRING, DECIMAL, DOT;
-terminal        ATP, SLASH;
+// header terminal 
+terminal                    ATP, SLASH;
+terminal                    REASON, DOT;
+terminal        Integer     DECIMAL;
+// body terminal 
+terminal                    LT,  FT, SP;
+terminal        String      STRING;
 
-non terminal    String      protocol, response;
+non terminal    DtcAtp      protocol;
+non terminal    String      response;
 non terminal    String      responseLine, responseHeader, argumentData;
-non terminal    String      signature, responseCode, reason;
-non terminal    Integer     major, minor;
+non terminal    String      signature, reason;
+non terminal    Integer     major, minor, responseCode;
 non terminal    String      version;
 non terminal    String      argumentList;
-non terminal    String      record, field, fieldList;
+non terminal    String      field;
+non terminal    DtcAtpRecord record, fieldList;
 non terminal    Object      binaryData;
 
-protocol        ::= response;
+protocol        ::= response
+                {: RESULT = ((AtpCup)CUP$AtpCup$parser).getAtp(); :};
 response        ::= responseLine responseHeader LT argumentData;
 responseLine    ::= signature SP responseCode SP reason LT;
-responseCode    ::= DECIMAL;
-signature       ::= ATP SLASH  version;
-version         ::= major DOT minor;
-major           ::= DECIMAL;
-minor           ::= DECIMAL;
+responseCode    ::= DECIMAL:d
+                {: 
+                    DtcAtp atp = ((AtpCup)CUP$AtpCup$parser).getAtp();
+                    atp.setResponseCode(d); 
+                :};
+signature       ::= ATP:e1 SLASH:e2  version:e3
+                {: 
+                    DtcAtp atp = ((AtpCup)CUP$AtpCup$parser).getAtp();
+                    atp.setSignature(e1.toString() + e2.toString() + e3.toString()); 
+                :};
+version         ::= major:d1 DOT minor:d2
+                {: RESULT = d1.toString() + "." + d2.toString(); :};
+major           ::= DECIMAL:d
+                {: RESULT = d; :};
+minor           ::= DECIMAL:d
+                {: RESULT = d; :};
 reason          ::= REASON;
 responseHeader  ::= argumentList;
 argumentData    ::= argumentList LT binaryData;
-argumentList    ::= | record argumentList;
-record          ::= fieldList LT;
-fieldList       ::= field | field fieldList;
-field           ::= STRING FT;
-binaryData      ::= DECIMAL LT;
+argumentList    ::= | argumentList record:r
+                {: 
+                    DtcAtp atp = ((AtpCup)CUP$AtpCup$parser).getAtp();
+                    atp.addRecord(r);
+                :};
+record          ::= fieldList:l LT
+                {: RESULT = l; :};
+fieldList       ::= field:f 
+                {: RESULT = new DtcAtpRecord(); RESULT.addField(f); :}
+                | fieldList:l field:f
+                {: l.addField(f); RESULT = l; :};
+field           ::= STRING:s FT
+                {: RESULT = s; :}
+                | FT
+                {: RESULT = ""; :};
+binaryData      ::= STRING:d LT
+                {: 
+                    DtcAtp atp = ((AtpCup)CUP$AtpCup$parser).getAtp();
+                    atp.setBinary(((AtpLex)CUP$AtpCup$parser.getScanner()).getBinaryData(new Integer(d))); 
+                :};
