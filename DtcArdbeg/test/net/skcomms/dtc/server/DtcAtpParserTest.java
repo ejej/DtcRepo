@@ -39,15 +39,6 @@ public class DtcAtpParserTest {
     System.out.println(atp);
   }
 
-  private void printByte(byte[] bytes) {
-    for (byte b : bytes) {
-      if (b == 0) {
-        // break;
-      }
-      System.out.println("byte:[" + b + "], char:[" + (char) b + "]");
-    }
-  }
-
   // 10.141.10.51 | 9100 - 싸이블로그
   @Test
   public void testAtp() throws IOException {
@@ -98,7 +89,7 @@ public class DtcAtpParserTest {
     String filePath = DtcPathHelper.getFilePath("/kcbbs/blog.100.xml.ini");
     DtcIni ini = new DtcIniFactory().createFrom(filePath);
 
-    DtcAtp dtcAtp = DtcAtpFactory.createFrom(request, ini);
+    DtcAtp dtcAtp = DtcAtpFactory.createRequest(request);
     this.assertAtp(dtcAtp.getBytes(ini.getCharacterSet()));
   }
 

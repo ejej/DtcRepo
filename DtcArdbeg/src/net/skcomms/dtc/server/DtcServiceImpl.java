@@ -14,25 +14,15 @@
  *******************************************************************************/
 package net.skcomms.dtc.server;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.Socket;
-import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -43,18 +33,23 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.skcomms.dtc.client.model.DtcResponse;
 import net.skcomms.dtc.client.service.DtcService;
-import net.skcomms.dtc.server.model.DtcAtp;
 import net.skcomms.dtc.server.model.DtcIni;
 import net.skcomms.dtc.server.model.DtcLog;
-import net.skcomms.dtc.server.model.DtcRequestProperty;
+import net.skcomms.dtc.server.requesthandler.AtpRequestHandler;
+import net.skcomms.dtc.server.requesthandler.DtcResult;
+import net.skcomms.dtc.server.requesthandler.JsonRequestHandler;
+import net.skcomms.dtc.server.requesthandler.RequestHandler;
+import net.skcomms.dtc.server.requesthandler.XmlRequestHandler;
 import net.skcomms.dtc.server.util.DtcHelper;
 import net.skcomms.dtc.server.util.DtcPathHelper;
+import net.skcomms.dtc.server.util.DtcRequestHttpAdapter;
+import net.skcomms.dtc.server.util.HttpServletHelper;
 import net.skcomms.dtc.shared.DtcNodeMeta;
 import net.skcomms.dtc.shared.DtcRequest;
 import net.skcomms.dtc.shared.DtcRequestMeta;
-import net.skcomms.dtc.shared.DtcRequestParameter;
 import net.skcomms.dtc.shared.DtcServiceVerifier;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -63,95 +58,86 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 @SuppressWarnings("serial")
 public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
 
-  public static class DtcNodeFilter implements FileFilter {
-
-    @Override
-    public boolean accept(File file) {
-      return file.isDirectory() || (file.isFile() && file.getName().endsWith(".ini"));
-    }
-  }
-
-  static String createDtcResponse(DtcRequest dtcRequest) throws IOException {
-    InputStream is = DtcServiceImpl.sendHttpRequest(dtcRequest);
-    return DtcServiceImpl.readHttpResponse(is, dtcRequest.getCharset());
-  }
-
-  private static String readHttpResponse(InputStream is, String encoding)
-      throws IOException, UnsupportedEncodingException {
-    StringBuilder responseBuffer = new StringBuilder();
-    byte[] content = DtcHelper.readAllBytes(is);
-    BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(
-        content), encoding));
-    String line;
-    while ((line = reader.readLine()) != null) {
-      responseBuffer.append(line);
-    }
-    reader.close();
-    return responseBuffer.toString();
-  }
-
-  protected static InputStream sendHttpRequest(DtcRequest dtcRequest)
-      throws MalformedURLException, IOException, ProtocolException {
-    int TIMEOUT = 5000;
-
-    URL conUrl = new URL(DtcHelper.combineUrl(dtcRequest));
-    HttpURLConnection httpCon = (HttpURLConnection) conUrl.openConnection();
-    httpCon.setConnectTimeout(TIMEOUT);
-    httpCon.setReadTimeout(TIMEOUT);
-    httpCon.setDoInput(true);
-    httpCon.setRequestProperty("Content-Type", "text/html; charset="
-        + dtcRequest.getCharset());
-    httpCon.connect();
-    return httpCon.getInputStream();
+  private static Map<String, RequestHandler> handlerMap;
+  static {
+    Map<String, RequestHandler> map = new HashMap<String, RequestHandler>();
+    map.put("ATP", new AtpRequestHandler());
+    map.put("XML", new XmlRequestHandler());
+    map.put("JSON", new JsonRequestHandler());
+    DtcServiceImpl.handlerMap = Collections.unmodifiableMap(map);
   }
 
   private EntityManagerFactory emf;
 
-  private String createAtpResponse(DtcRequest request, DtcIni ini) throws IOException {
-    Socket socket = this.openSocket(request);
-    try {
-      DtcAtp atpRequest = DtcAtpFactory.createFrom(request, ini);
-      System.out.println("ATP REQUEST:" + atpRequest);
-      socket.getOutputStream().write(atpRequest.getBytes(request.getCharset()));
-      socket.getOutputStream().flush();
+  private static final Logger logger = Logger.getLogger(DtcServiceImpl.class);
 
-      DtcAtp atpResponse = DtcAtpFactory.createFrom(socket.getInputStream(), request.getCharset());
-      return atpResponse.toHtmlString(ini);
-    } finally {
-      socket.close();
+  static List<DtcNodeMeta> getDirImpl(String path) throws IOException {
+    String parentPath = DtcPathHelper.getFilePath(path);
+    File file = new File(parentPath);
+    List<DtcNodeMeta> nodes = new ArrayList<DtcNodeMeta>();
+
+    File[] files = DtcPathHelper.getChildNodes(file);
+    for (File child : files) {
+      DtcNodeMeta node = DtcHelper.createDtcNodeMeta(child);
+      nodes.add(node);
     }
+    return nodes;
   }
 
-  private DtcRequest createDtcRequestFromHttpRequest(HttpServletRequest req) throws IOException,
+  private static DtcRequestMeta getDtcRequestMetaImpl(String path) throws IOException {
+    DtcIni ini = DtcIniFactory.getIni(path);
+    DtcRequestMeta requestMeta = ini.createRequestMeta();
+    requestMeta.setPath(path);
+
+    return requestMeta;
+  }
+
+  private static DtcResponse getDtcResponseImpl(DtcRequest request) throws IOException,
       FileNotFoundException {
-    DtcRequest request = new DtcRequest();
 
-    request.setPath(req.getParameter("path"));
-    request.setEncoding(req.getParameter("charset"));
-    request.setAppName(req.getParameter("appName"));
-    request.setApiNumber(req.getParameter("apiNumber"));
+    DtcServiceImpl.preProcessDtcRequest(request);
 
-    List<DtcRequestParameter> daemonParams = new ArrayList<DtcRequestParameter>();
-    this.setUpParameters(req, daemonParams);
-    daemonParams.add(new DtcRequestParameter("IP", null, req.getParameter("IP")));
-    daemonParams.add(new DtcRequestParameter("Port", null, req.getParameter("Port")));
-    request.setRequestParameters(daemonParams);
-    return request;
+    DtcResponse response = new DtcResponse();
+    response.setRequest(request);
+
+    DtcIni ini = DtcIniFactory.getIni(request.getPath());
+    Date startTime = new Date();
+    String result = DtcServiceImpl.getHtmlResponse(request, ini);
+    response.setResponseTime(new Date().getTime() - startTime.getTime());
+    response.setResult(result);
+
+    return response;
+  }
+
+  private static String getHtmlResponse(DtcRequest request, DtcIni ini) throws IOException {
+    DtcResult result;
+    RequestHandler requestHandler = DtcServiceImpl.handlerMap.get(ini.getProtocol());
+    if (requestHandler == null) {
+      throw new UnsupportedOperationException("Unsupported protocol:" + ini.getProtocol());
+    }
+    result = requestHandler.handle(request, ini);
+    return result.getResult();
+  }
+
+  private static void preProcessDtcRequest(DtcRequest request) throws FileNotFoundException,
+      IOException {
+    if (request.useCndQuery()) {
+      String cndQuery = CndQueryProvider.getCndQuery(request.getQuery());
+      if (DtcServiceImpl.logger.isDebugEnabled()) {
+        DtcServiceImpl.logger.debug("NativeQuery:" + request.getQuery());
+        DtcServiceImpl.logger.debug("CndQuery:" + cndQuery);
+      }
+      request.setCndQuery(cndQuery);
+    }
   }
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException,
       IOException {
-    DtcRequest request = this.createDtcRequestFromHttpRequest(req);
-
-    DtcResponse response = this.getDtcResponse(request);
-    this.writeHtmlResponse(resp, response, request.getCharset());
-  }
-
-  private File[] getChildNodes(File file) {
-    File[] files = file.listFiles(new DtcNodeFilter());
-    Arrays.sort(files, DtcHelper.NODE_COMPARATOR);
-    return files;
+    Map<String, String> params = HttpServletHelper.rebuildParameterMap(req);
+    DtcRequest request = DtcRequestHttpAdapter.createDtcRequest(params);
+    DtcResponse dtcResponse = DtcServiceImpl.getDtcResponseImpl(request);
+    HttpServletHelper.writeHtmlResponse(resp, dtcResponse.getResult(), request.getCharset());
   }
 
   @Override
@@ -162,23 +148,10 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
 
     this.logPath(path);
     try {
-      return this.getDirImpl(path);
+      return DtcServiceImpl.getDirImpl(path);
     } catch (IOException e) {
       throw new IllegalStateException(e);
     }
-  }
-
-  List<DtcNodeMeta> getDirImpl(String nodePath) throws IOException {
-    String filePath = DtcPathHelper.getFilePath(nodePath);
-    File file = new File(filePath);
-    List<DtcNodeMeta> nodes = new ArrayList<DtcNodeMeta>();
-
-    File[] files = this.getChildNodes(file);
-    for (File child : files) {
-      DtcNodeMeta node = DtcHelper.createDtcNodeMeta(child);
-      nodes.add(node);
-    }
-    return nodes;
   }
 
   @Override
@@ -187,62 +160,21 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
       throw new IllegalArgumentException("Invalid test page:" + path);
     }
     try {
-      return this.getDtcRequestMetaImpl(path);
+      return DtcServiceImpl.getDtcRequestMetaImpl(path);
     } catch (IOException e) {
       e.printStackTrace();
       throw new IllegalStateException(e);
     }
   }
 
-  DtcRequestMeta getDtcRequestMetaImpl(String path) throws IOException {
-    DtcIni ini = this.getIni(path);
-    // FIXME DtcRequestInfoModel을 DtcIni로 대체하는 것을 검토하자.
-    DtcRequestMeta requestInfo = ini.createRequestInfo();
-    requestInfo.setPath(path);
-
-    return requestInfo;
-  }
-
   @Override
   public DtcResponse getDtcResponse(DtcRequest request) throws IllegalArgumentException {
     try {
-      return this.getDtcResponseImpl(request);
+      return DtcServiceImpl.getDtcResponseImpl(request);
     } catch (Exception e) {
       e.printStackTrace();
       throw new IllegalArgumentException(e);
     }
-  }
-
-  private DtcResponse getDtcResponseImpl(DtcRequest request) throws IOException,
-      FileNotFoundException {
-    DtcResponse response = new DtcResponse();
-
-    DtcIni ini = this.getIni(request.getPath());
-    Date startTime = new Date();
-    String result = this.getResponseAndConvertToHtml(request, ini);
-    response.setResponseTime(new Date().getTime() - startTime.getTime());
-    response.setResult(result);
-
-    return response;
-  }
-
-  private DtcIni getIni(String nodePath) throws IOException, FileNotFoundException {
-    String filePath = DtcPathHelper.getFilePath(nodePath);
-    DtcIni ini = new DtcIniFactory().createFrom(filePath);
-    return ini;
-  }
-
-  private String getResponseAndConvertToHtml(DtcRequest request, DtcIni ini) throws IOException {
-    String result;
-    if (ini.getProtocol().equals("ATP")) {
-      result = this.createAtpResponse(request, ini);
-    } else if (ini.getProtocol().equals("XML")) {
-      String xml = DtcServiceImpl.createDtcResponse(request);
-      result = DtcHelper.getHtmlFromXml(xml, request.getCharset());
-    } else {
-      result = DtcServiceImpl.createDtcResponse(request);
-    }
-    return result;
   }
 
   @Override
@@ -261,42 +193,12 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
     manager.close();
   }
 
-  private Socket openSocket(DtcRequest request) throws UnknownHostException, IOException {
-    String ip = request.getRequestParameter("IP");
-    String port = request.getRequestParameter("Port");
-    Socket socket = new Socket(ip, Integer.parseInt(port));
-    socket.setReuseAddress(true);
-    socket.setSoLinger(true, 0);
-    return socket;
-  }
-
   @Autowired
   void setEntityManagerFactory(EntityManagerFactory emf) {
-    System.out.println("setEntityManagerFactory() called.");
-    this.emf = emf;
-  }
-
-  private void setUpParameters(HttpServletRequest req, List<DtcRequestParameter> daemonParams)
-      throws IOException, FileNotFoundException {
-    DtcIni ini = this.getIni(req.getParameter("path"));
-    for (DtcRequestProperty prop : ini.getRequestProps()) {
-      String value = req.getParameter(prop.getKey());
-      daemonParams.add(new DtcRequestParameter(prop.getKey(), null, value));
+    if (DtcServiceImpl.logger.isInfoEnabled()) {
+      DtcServiceImpl.logger.info("setEntityManagerFactory() called.");
     }
-  }
-
-  private void writeHtmlResponse(HttpServletResponse resp, DtcResponse response, String charset)
-      throws IOException {
-    resp.setCharacterEncoding(charset);
-    resp.setContentType("text/html");
-    resp.getWriter().write("<!DOCTYPE html><html><head>");
-    resp.getWriter().write(
-        "<meta http-equiv=\"content-type\" content=\"text/html; charset=" + charset + "\">");
-    resp.getWriter().write("<link type=\"text/css\" rel=\"stylesheet\" href=\"../DtcArdbeg.css\">");
-    resp.getWriter().write("</head><body>");
-    resp.getWriter().write(response.getResult());
-    resp.getWriter().write("</body></html>");
-    resp.getWriter().close();
+    this.emf = emf;
   }
 
 }

@@ -23,6 +23,10 @@ public class DtcAtpRecord {
     return bos.toByteArray();
   }
 
+  public List<String> getFields() {
+    return this.fields;
+  }
+
   @Override
   public String toString() {
     return this.fields.toString();

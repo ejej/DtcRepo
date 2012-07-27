@@ -71,7 +71,6 @@ public class DtcAtpParser {
       this.tokenizer.ungetToken(token);
       token = "";
     }
-    System.out.println("field:[" + token + "], size:" + token.getBytes().length);
     this.currRecord.addField(token);
     this.match(this.tokenizer.getToken(), DtcAtpParser.FT);
   }
@@ -103,8 +102,7 @@ public class DtcAtpParser {
   }
 
   private void reason() {
-    String token = this.tokenizer.getTokenNoSpace();
-    System.out.println("Reason:[" + token + "], size:" + token.getBytes().length);
+    this.tokenizer.getTokenNoSpace();
   }
 
   private void record() {

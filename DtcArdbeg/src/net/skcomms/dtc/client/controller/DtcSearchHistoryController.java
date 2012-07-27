@@ -45,7 +45,7 @@ public class DtcSearchHistoryController implements DtcTestPageModelObserver {
     // TODO view 를 다시 그린다.
 
     for (DtcSearchHistory history : searchHistories) {
-      System.out.println(history.getFormattedString("Query", "IP"));
+      GWT.log(history.getFormattedString("Query", "IP"));
     }
   }
 }

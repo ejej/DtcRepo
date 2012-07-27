@@ -24,6 +24,36 @@ public class DtcRequestMeta implements Serializable {
 
   private String apiNumber;
 
+  private String cndFieldName;
+
+  private String queryFieldName;
+
+  public DtcRequest createDtcRequest(List<DtcRequestParameter> parameters) {
+    DtcRequest request = new DtcRequest();
+
+    request.setPath(this.path);
+    request.setEncoding(this.encoding);
+    request.setAppName(this.appName);
+    request.setApiNumber(this.apiNumber);
+    request.setCndFieldName(this.cndFieldName);
+    request.setQueryFieldName(this.queryFieldName);
+    request.setRequestParameters(parameters);
+
+    return request;
+  }
+
+  public String getApiNumber() {
+    return this.apiNumber;
+  }
+
+  public String getAppName() {
+    return this.appName;
+  }
+
+  public String getCndFieldName() {
+    return this.cndFieldName;
+  }
+
   /**
    * @return
    */
@@ -49,6 +79,22 @@ public class DtcRequestMeta implements Serializable {
     return this.path;
   }
 
+  public String getQueryFieldName() {
+    return this.queryFieldName;
+  }
+
+  public void setApiNumber(String apiNumber) {
+    this.apiNumber = apiNumber;
+  }
+
+  public void setAppName(String appName) {
+    this.appName = appName;
+  }
+
+  public void setCndQueryFieldName(String cndFieldName) {
+    this.cndFieldName = cndFieldName;
+  }
+
   public void setEncoding(String encoding) {
     this.encoding = encoding;
   }
@@ -61,32 +107,17 @@ public class DtcRequestMeta implements Serializable {
     this.params = params;
   }
 
-  /**
-   * @param path
-   */
   public void setPath(String path) {
     this.path = path;
+  }
+
+  public void setQueryFieldName(String queryFieldName) {
+    this.queryFieldName = queryFieldName;
   }
 
   @Override
   public String toString() {
     return this.encoding + ", " + this.ipInfo.toString() + ", " + this.params.toString();
-  }
-
-  public String getAppName() {
-    return appName;
-  }
-
-  public void setAppName(String appName) {
-    this.appName = appName;
-  }
-
-  public String getApiNumber() {
-    return apiNumber;
-  }
-
-  public void setApiNumber(String apiNumber) {
-    this.apiNumber = apiNumber;
   }
 
 }

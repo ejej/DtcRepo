@@ -53,12 +53,11 @@ public class DtcNodeModel {
     this.observers.add(observer);
   }
 
-  private void categorizeNodesByVisitCount(List<DtcNodeMeta> nodeInfos) {
+  private void categorizeNodesByVisitCount(List<DtcNodeMeta> nodeMetas) {
     this.dtcNodeList.clear();
     this.favoritePairs.clear();
 
-    for (DtcNodeMeta nodeInfo : nodeInfos) {
-      System.out.println("name:" + nodeInfo.getName() + ", path:" + nodeInfo.getPath());
+    for (DtcNodeMeta nodeInfo : nodeMetas) {
       Integer score = PersistenceManager.getInstance().getVisitCount(nodeInfo.getName());
       if (score > 0) {
         this.favoritePairs.add(new Pair<Integer, DtcNodeMeta>(score, nodeInfo));
@@ -190,6 +189,7 @@ public class DtcNodeModel {
           @Override
           public void onSuccess(DtcRequestMeta requestInfo) {
             DtcNodeModel.this.fireTestPageLoaded(requestInfo);
+            GWT.log("CND : " + requestInfo.getCndFieldName());
           }
         });
   }

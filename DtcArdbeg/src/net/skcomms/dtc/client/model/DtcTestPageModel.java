@@ -8,6 +8,7 @@ import net.skcomms.dtc.client.service.DtcService;
 import net.skcomms.dtc.shared.DtcRequest;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.http.client.URL;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
@@ -30,7 +31,7 @@ public class DtcTestPageModel {
       try {
         observer.onTestPageResponseReceived(response);
       } catch (Exception e) {
-        Window.alert(e.getMessage());
+        Window.alert(e.getMessage() + observer.toString());
       }
     }
   }
@@ -49,7 +50,11 @@ public class DtcTestPageModel {
           @Override
           public void onSuccess(DtcResponse response) {
             GWT.log(response.getResult());
-            response.setRequest(request);
+            GWT.log("Encoding Test");
+            GWT.log(URL.encode(Character.toString((char) 0x0b)));
+            GWT.log(URL.encode(Character.toString((char) 0x0c)));
+
+            // response.setRequest(request);
             DtcTestPageModel.this.fireResponseReceived(response);
           }
 

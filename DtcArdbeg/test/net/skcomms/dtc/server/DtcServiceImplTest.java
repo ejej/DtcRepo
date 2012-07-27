@@ -4,7 +4,6 @@
 package net.skcomms.dtc.server;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -12,7 +11,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -35,6 +33,34 @@ import org.xml.sax.helpers.DefaultHandler;
  * @author jujang@sk.com
  */
 public class DtcServiceImplTest {
+
+  private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat(
+      "yyyy/MM/dd HH:mm:ss");
+
+  private static void checkLeafValidation(DtcNodeMeta item) {
+    Assert.assertTrue(item.getPath().endsWith(".ini"));
+    Assert.assertFalse(DtcServiceVerifier.isValidDirectoryPath(item.getPath()));
+  }
+
+  private static void checkNonleafValidation(DtcNodeMeta item) {
+    Assert.assertEquals("디렉토리", item.getDescription());
+    Assert.assertTrue(DtcServiceVerifier.isValidDirectoryPath(item.getPath()));
+  }
+
+  private static void checkValidation(DtcNodeMeta item) throws ParseException {
+    Assert.assertNotNull(item.getName());
+    Assert.assertNotNull(item.getDescription());
+    Assert.assertNotNull(item.getUpdateTime());
+    Assert.assertNotNull(item.getPath());
+
+    if (item.isLeaf()) {
+      DtcServiceImplTest.checkLeafValidation(item);
+    } else {
+      DtcServiceImplTest.checkNonleafValidation(item);
+    }
+
+    DtcServiceImplTest.SIMPLE_DATE_FORMAT.parse(item.getUpdateTime());
+  }
 
   /**
    * @param url
@@ -72,75 +98,30 @@ public class DtcServiceImplTest {
 
   @Test
   public void testExtractItemsFrom() throws IOException, ParseException {
-    List<DtcNodeMeta> items = new DtcServiceImpl().getDirImpl("/");
+    new DtcServiceImpl();
+    List<DtcNodeMeta> items = DtcServiceImpl.getDirImpl("/");
     for (DtcNodeMeta item : items) {
-      Assert.assertNotNull(item.getName());
-      Assert.assertNotNull(item.getDescription());
-      Assert.assertNotNull(item.getUpdateTime());
-      Assert.assertNotNull(item.getPath());
-
-      if (item.isLeaf()) {
-        Assert.assertTrue(item.getPath().endsWith(".ini"));
-        Assert.assertFalse(DtcServiceVerifier.isValidDirectoryPath(item.getPath()));
-      } else {
-        Assert.assertEquals("디렉토리", item.getDescription());
-        Assert.assertTrue(DtcServiceVerifier.isValidDirectoryPath(item.getPath()));
-      }
-
-      new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(item.getUpdateTime());
-
-      System.out.println("[" + item.getName() + ":" + item.getDescription() + ":"
-          + item.getUpdateTime() + ":" + item.getPath() + "]");
+      DtcServiceImplTest.checkValidation(item);
     }
-
     Assert.assertEquals(176, items.size());
-
     Assert.assertFalse(items.isEmpty());
 
-    items = new DtcServiceImpl().getDirImpl("/kshop2s/");
+    new DtcServiceImpl();
+    items = DtcServiceImpl.getDirImpl("/kshop2s/");
     for (DtcNodeMeta item : items) {
-      Assert.assertNotNull(item.getName());
-      Assert.assertNotNull(item.getDescription());
-      Assert.assertNotNull(item.getUpdateTime());
-      Assert.assertNotNull(item.getPath());
-
-      if (item.isLeaf()) {
-        Assert.assertTrue(item.getPath().endsWith(".ini"));
-
-        Assert.assertFalse(DtcServiceVerifier.isValidDirectoryPath(item.getPath()));
-      } else {
-        Assert.assertEquals("디렉토리", item.getDescription());
-        Assert.assertTrue(DtcServiceVerifier.isValidDirectoryPath(item.getPath()));
-      }
-
-      new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(item.getUpdateTime());
-
-      System.out.println("[" + item.getName() + ":" + item.getDescription() + ":"
-          + item.getUpdateTime() + ":" + item.getPath() + "]");
+      DtcServiceImplTest.checkValidation(item);
     }
     Assert.assertEquals(6, items.size());
-
     Assert.assertFalse(items.isEmpty());
   }
 
   @Test
   public void testGetDir() throws IOException {
-    List<DtcNodeMeta> nodes = new DtcServiceImpl().getDirImpl("/common/");
+    new DtcServiceImpl();
+    List<DtcNodeMeta> nodes = DtcServiceImpl.getDirImpl("/common/");
     for (DtcNodeMeta node : nodes) {
       System.out.println(node);
     }
-  }
-
-  @Test
-  public void testNodeComparator() {
-    File file1 = new File("sample/dtc/dtc.ini");
-    File file2 = new File("sample/dtc/habong");
-    File[] files = { file1, file2 };
-    Arrays.sort(files, DtcHelper.NODE_COMPARATOR);
-
-    Assert.assertEquals(false, file1.isDirectory());
-    Assert.assertEquals(true, file2.isDirectory());
-    Assert.assertEquals("habong", files[0].getName());
   }
 
   @Test

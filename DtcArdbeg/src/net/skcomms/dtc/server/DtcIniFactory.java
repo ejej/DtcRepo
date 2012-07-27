@@ -20,6 +20,7 @@ import net.skcomms.dtc.server.model.DtcIni;
 import net.skcomms.dtc.server.model.DtcRequestProperty;
 import net.skcomms.dtc.server.model.DtcResponseProperty;
 import net.skcomms.dtc.server.util.DtcHelper;
+import net.skcomms.dtc.server.util.DtcPathHelper;
 
 /**
  * @author jujang@sk.com
@@ -38,6 +39,12 @@ public class DtcIniFactory {
       }
     }
     return "euckr";
+  }
+
+  public static DtcIni getIni(String nodePath) throws IOException, FileNotFoundException {
+    String filePath = DtcPathHelper.getFilePath(nodePath);
+    DtcIni ini = new DtcIniFactory().createFrom(filePath);
+    return ini;
   }
 
   private DtcIni ini;
