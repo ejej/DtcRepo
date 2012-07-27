@@ -9,7 +9,7 @@ import java.io.UnsupportedEncodingException;
 import static net.skcomms.dtc.server.atp.AtpSym.*;
 %%
 
-// %debug
+%debug
 %class AtpLex
 
 %unicode

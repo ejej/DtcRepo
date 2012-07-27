@@ -145,6 +145,9 @@ public class DtcHelper {
       Date time = new Date();
       System.out.println("Read Time:" + Double.toString((time.getTime() - start.getTime()) / 1000));
       bos.write(buffer, 0, len);
+      if (bis.available() == 0) {
+        break;
+      }
     }
     return bos.toByteArray();
   }

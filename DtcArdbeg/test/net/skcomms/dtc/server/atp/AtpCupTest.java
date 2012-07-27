@@ -1,7 +1,8 @@
 package net.skcomms.dtc.server.atp;
 
-import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -41,8 +42,9 @@ public class AtpCupTest {
     os_socket.write(bs);
     os_socket.flush();
 
-    DtcAtp atp = (DtcAtp) new AtpCup(new AtpLex(new BufferedInputStream(soc.getInputStream()),
-        "utf-8")).parse().value;
+    byte[] bytes = DtcHelper.readAllBytes(soc.getInputStream());
+    AtpLex lex = new AtpLex(new InputStreamReader(new ByteArrayInputStream(bytes), "utf-8"));
+    DtcAtp atp = (DtcAtp) new AtpCup(lex).parse().value;
 
     Assert.assertNotNull(atp);
     System.out.println(atp);
@@ -73,7 +75,7 @@ public class AtpCupTest {
             "100" + AtpCupTest.FT + AtpCupTest.LT +
             "blog" + AtpCupTest.FT + AtpCupTest.LT +
             "1" + AtpCupTest.FT + AtpCupTest.LT +
-            "3" + AtpCupTest.FT + AtpCupTest.LT +
+            "10" + AtpCupTest.FT + AtpCupTest.LT +
             "TS" + AtpCupTest.FT + AtpCupTest.LT +
             "PD" + AtpCupTest.FT + AtpCupTest.LT +
             "256" + AtpCupTest.FT + AtpCupTest.LT +

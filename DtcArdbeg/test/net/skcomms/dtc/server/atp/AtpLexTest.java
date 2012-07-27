@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import java_cup.runtime.Symbol;
@@ -36,10 +35,7 @@ public class AtpLexTest {
 
     OutputStream os_socket = soc.getOutputStream(); // 소켓에 쓰고
     os_socket.write(bs);
-    Date start = new Date();
     byte[] bytes = DtcHelper.readAllBytes(soc.getInputStream());
-    Date time = new Date();
-    System.out.println("Read Time:" + Double.toString((time.getTime() - start.getTime()) / 1000));
     AtpLex lex = new AtpLex(new InputStreamReader(new ByteArrayInputStream(bytes), "utf-8"));
 
     while (true) {
@@ -120,11 +116,11 @@ public class AtpLexTest {
 
     Assert.assertEquals("ATP", t.next_token().value);
     Assert.assertEquals("/", t.next_token().value);
-    Assert.assertEquals("1", t.next_token().value);
+    Assert.assertEquals(new Integer(1), t.next_token().value);
     Assert.assertEquals(".", t.next_token().value);
-    Assert.assertEquals("2", t.next_token().value);
+    Assert.assertEquals(new Integer(2), t.next_token().value);
     Assert.assertEquals(" ", t.next_token().value);
-    Assert.assertEquals("100", t.next_token().value);
+    Assert.assertEquals(new Integer(100), t.next_token().value);
     Assert.assertEquals(" ", t.next_token().value);
     Assert.assertEquals("Continue", t.next_token().value);
     Assert.assertEquals(AtpLexTest.LT, t.next_token().value);

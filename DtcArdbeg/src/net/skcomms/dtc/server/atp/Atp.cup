@@ -36,17 +36,17 @@ non terminal    DtcAtpRecord record, fieldList;
 non terminal    Object      binaryData;
 
 protocol        ::= response
-                {: RESULT = ((AtpCup)CUP$AtpCup$parser).getAtp(); :};
+                {: RESULT = parser.getAtp(); :};
 response        ::= responseLine responseHeader LT argumentData;
 responseLine    ::= signature SP responseCode SP reason LT;
 responseCode    ::= DECIMAL:d
                 {: 
-                    DtcAtp atp = ((AtpCup)CUP$AtpCup$parser).getAtp();
+                    DtcAtp atp = parser.getAtp();
                     atp.setResponseCode(d); 
                 :};
 signature       ::= ATP:e1 SLASH:e2  version:e3
                 {: 
-                    DtcAtp atp = ((AtpCup)CUP$AtpCup$parser).getAtp();
+                    DtcAtp atp = parser.getAtp();
                     atp.setSignature(e1.toString() + e2.toString() + e3.toString()); 
                 :};
 version         ::= major:d1 DOT minor:d2
@@ -60,7 +60,7 @@ responseHeader  ::= argumentList;
 argumentData    ::= argumentList LT binaryData;
 argumentList    ::= | argumentList record:r
                 {: 
-                    DtcAtp atp = ((AtpCup)CUP$AtpCup$parser).getAtp();
+                    DtcAtp atp = parser.getAtp();
                     atp.addRecord(r);
                 :};
 record          ::= fieldList:l LT
@@ -75,6 +75,6 @@ field           ::= STRING:s FT
                 {: RESULT = ""; :};
 binaryData      ::= STRING:d LT
                 {: 
-                    DtcAtp atp = ((AtpCup)CUP$AtpCup$parser).getAtp();
-                    atp.setBinary(((AtpLex)CUP$AtpCup$parser.getScanner()).getBinaryData(new Integer(d))); 
+                    DtcAtp atp = parser.getAtp();
+                    atp.setBinary(((AtpLex)parser.getScanner()).getBinaryData(new Integer(d))); 
                 :};
