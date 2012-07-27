@@ -15,6 +15,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import net.skcomms.dtc.server.DtcIniFactory;
 import net.skcomms.dtc.server.DtcXmlToHtmlHandler;
+import net.skcomms.dtc.server.model.DtcAtp;
 import net.skcomms.dtc.server.model.DtcIni;
 import net.skcomms.dtc.shared.DtcNodeMeta;
 
@@ -75,6 +76,14 @@ public class DtcHelper {
 
   public static String getFormattedDateString(long time) {
     return DtcHelper.getFormattedDateString(new Date(time));
+  }
+
+  public static String getHtmlFromAtp(DtcAtp response, DtcIni ini) {
+    return response.toHtmlString(ini);
+  }
+
+  public static String getHtmlFromJson(String json, String charset) {
+    return json;
   }
 
   public static String getHtmlFromXml(String xml, String encoding) {

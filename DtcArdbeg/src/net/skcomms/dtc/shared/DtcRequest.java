@@ -7,11 +7,17 @@ import java.util.List;
 public class DtcRequest implements Serializable {
 
   private String encoding;
+
   private List<DtcRequestParameter> requestParameter;
+
   private String path;
+
   private String apiNumber;
+
   private String appName;
+
   private String cndFieldName;
+
   private String queryFieldName;
 
   public String getApiNumber() {
@@ -45,6 +51,10 @@ public class DtcRequest implements Serializable {
 
   public List<DtcRequestParameter> getRequestParameters() {
     return this.requestParameter;
+  }
+
+  public boolean useCndQuery() {
+    return this.cndFieldName != null && this.getRequestParameter(this.cndFieldName) != null;
   }
 
   public void setApiNumber(String apiNumber) {

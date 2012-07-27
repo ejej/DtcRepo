@@ -34,6 +34,9 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class DtcServiceImplTest {
 
+  private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat(
+      "yyyy/MM/dd HH:mm:ss");
+
   private static void checkValidation(DtcNodeMeta item) throws ParseException {
     Assert.assertNotNull(item.getName());
     Assert.assertNotNull(item.getDescription());
@@ -41,16 +44,22 @@ public class DtcServiceImplTest {
     Assert.assertNotNull(item.getPath());
 
     if (item.isLeaf()) {
-      Assert.assertTrue(item.getPath().endsWith(".ini"));
-      Assert.assertFalse(DtcServiceVerifier.isValidDirectoryPath(item.getPath()));
+      checkLeafValidation(item);
     } else {
-      Assert.assertEquals("디렉토리", item.getDescription());
-      Assert.assertTrue(DtcServiceVerifier.isValidDirectoryPath(item.getPath()));
+      checkNonleafValidation(item);
     }
 
-    new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(item.getUpdateTime());
-    System.out.println("[" + item.getName() + ":" + item.getDescription() + ":"
-        + item.getUpdateTime() + ":" + item.getPath() + "]");
+    DtcServiceImplTest.SIMPLE_DATE_FORMAT.parse(item.getUpdateTime());
+  }
+
+  private static void checkNonleafValidation(DtcNodeMeta item) {
+    Assert.assertEquals("디렉토리", item.getDescription());
+    Assert.assertTrue(DtcServiceVerifier.isValidDirectoryPath(item.getPath()));
+  }
+
+  private static void checkLeafValidation(DtcNodeMeta item) {
+    Assert.assertTrue(item.getPath().endsWith(".ini"));
+    Assert.assertFalse(DtcServiceVerifier.isValidDirectoryPath(item.getPath()));
   }
 
   /**
@@ -68,14 +77,16 @@ public class DtcServiceImplTest {
 
   @Test
   public void testExtractItemsFrom() throws IOException, ParseException {
-    List<DtcNodeMeta> items = new DtcServiceImpl().getDirImpl("/");
+    new DtcServiceImpl();
+    List<DtcNodeMeta> items = DtcServiceImpl.getDirImpl("/");
     for (DtcNodeMeta item : items) {
       DtcServiceImplTest.checkValidation(item);
     }
     Assert.assertEquals(176, items.size());
     Assert.assertFalse(items.isEmpty());
 
-    items = new DtcServiceImpl().getDirImpl("/kshop2s/");
+    new DtcServiceImpl();
+    items = DtcServiceImpl.getDirImpl("/kshop2s/");
     for (DtcNodeMeta item : items) {
       DtcServiceImplTest.checkValidation(item);
     }
@@ -85,7 +96,8 @@ public class DtcServiceImplTest {
 
   @Test
   public void testGetDir() throws IOException {
-    List<DtcNodeMeta> nodes = new DtcServiceImpl().getDirImpl("/common/");
+    new DtcServiceImpl();
+    List<DtcNodeMeta> nodes = DtcServiceImpl.getDirImpl("/common/");
     for (DtcNodeMeta node : nodes) {
       System.out.println(node);
     }

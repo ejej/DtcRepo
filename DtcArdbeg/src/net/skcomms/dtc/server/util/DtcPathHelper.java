@@ -2,6 +2,9 @@ package net.skcomms.dtc.server.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+
+import net.skcomms.dtc.server.util.DtcHelper.DtcNodeFilter;
 
 
 public class DtcPathHelper {
@@ -31,6 +34,12 @@ public class DtcPathHelper {
 
   public static String getFilePath(String dtcPath) throws IOException {
     return getRootPath() + dtcPath;
+  }
+
+  public static File[] getChildNodes(File file) {
+    File[] files = file.listFiles(new DtcHelper.DtcNodeFilter());
+    Arrays.sort(files, DtcHelper.NODE_COMPARATOR);
+    return files;
   }
 
 }

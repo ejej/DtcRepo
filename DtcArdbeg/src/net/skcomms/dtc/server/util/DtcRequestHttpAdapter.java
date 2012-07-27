@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.skcomms.dtc.server.DtcServiceImpl;
+import net.skcomms.dtc.server.DtcIniFactory;
 import net.skcomms.dtc.server.model.DtcIni;
 import net.skcomms.dtc.server.model.DtcRequestProperty;
 import net.skcomms.dtc.shared.DtcRequest;
@@ -34,7 +34,7 @@ public class DtcRequestHttpAdapter {
 
   private static List<DtcRequestParameter> getListFromMap(Map<String, String> urlParams)
       throws IOException, FileNotFoundException {
-    DtcIni ini = DtcServiceImpl.getIni(urlParams.get("path"));
+    DtcIni ini = DtcIniFactory.getIni(urlParams.get("path"));
     List<DtcRequestParameter> params = new ArrayList<DtcRequestParameter>();
 
     for (DtcRequestProperty prop : ini.getRequestProps()) {

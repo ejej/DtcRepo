@@ -58,7 +58,6 @@ public class DtcNodeModel {
     this.favoritePairs.clear();
 
     for (DtcNodeMeta nodeInfo : nodeMetas) {
-      System.out.println("name:" + nodeInfo.getName() + ", path:" + nodeInfo.getPath());
       Integer score = PersistenceManager.getInstance().getVisitCount(nodeInfo.getName());
       if (score > 0) {
         this.favoritePairs.add(new Pair<Integer, DtcNodeMeta>(score, nodeInfo));
