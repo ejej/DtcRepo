@@ -132,17 +132,6 @@ public class DtcServiceImplTest {
   }
 
   @Test
-  public void testGetRootPath() throws IOException {
-    Assert.assertEquals("sample/dtc/", DtcHelper.getRootPath());
-    String absolutePath = DtcHelper.getRootPath() + "/";
-    File file = new File(absolutePath);
-
-    for (File item : file.listFiles(new DtcServiceImpl.DtcNodeFilter())) {
-      System.out.println(item.getName());
-    }
-  }
-
-  @Test
   public void testNodeComparator() {
     File file1 = new File("sample/dtc/dtc.ini");
     File file2 = new File("sample/dtc/habong");

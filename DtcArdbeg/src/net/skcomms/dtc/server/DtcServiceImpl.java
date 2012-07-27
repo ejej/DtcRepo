@@ -48,6 +48,7 @@ import net.skcomms.dtc.server.model.DtcIni;
 import net.skcomms.dtc.server.model.DtcLog;
 import net.skcomms.dtc.server.model.DtcRequestProperty;
 import net.skcomms.dtc.server.util.DtcHelper;
+import net.skcomms.dtc.server.util.DtcPathHelper;
 import net.skcomms.dtc.shared.DtcNodeMeta;
 import net.skcomms.dtc.shared.DtcRequest;
 import net.skcomms.dtc.shared.DtcRequestMeta;
@@ -131,20 +132,11 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
     request.setApiNumber(req.getParameter("apiNumber"));
 
     List<DtcRequestParameter> daemonParams = new ArrayList<DtcRequestParameter>();
-    setUpParameters(req, daemonParams);
+    this.setUpParameters(req, daemonParams);
     daemonParams.add(new DtcRequestParameter("IP", null, req.getParameter("IP")));
     daemonParams.add(new DtcRequestParameter("Port", null, req.getParameter("Port")));
     request.setRequestParameters(daemonParams);
     return request;
-  }
-
-  private void setUpParameters(HttpServletRequest req, List<DtcRequestParameter> daemonParams)
-      throws IOException, FileNotFoundException {
-    DtcIni ini = this.getIni(req.getParameter("path"));
-    for (DtcRequestProperty prop : ini.getRequestProps()) {
-      String value = req.getParameter(prop.getKey());
-      daemonParams.add(new DtcRequestParameter(prop.getKey(), null, value));
-    }
   }
 
   @Override
@@ -176,15 +168,14 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
     }
   }
 
-  List<DtcNodeMeta> getDirImpl(String path) throws IOException {
-    String parentPath = DtcHelper.getRootPath() + path.substring(1);
-    String relativePath = DtcHelper.getRelativePath(parentPath);
-    File file = new File(parentPath);
+  List<DtcNodeMeta> getDirImpl(String nodePath) throws IOException {
+    String filePath = DtcPathHelper.getFilePath(nodePath);
+    File file = new File(filePath);
     List<DtcNodeMeta> nodes = new ArrayList<DtcNodeMeta>();
 
     File[] files = this.getChildNodes(file);
     for (File child : files) {
-      DtcNodeMeta node = DtcHelper.createDtcNodeMeta(relativePath, child);
+      DtcNodeMeta node = DtcHelper.createDtcNodeMeta(child);
       nodes.add(node);
     }
     return nodes;
@@ -236,7 +227,7 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
   }
 
   private DtcIni getIni(String nodePath) throws IOException, FileNotFoundException {
-    String filePath = DtcHelper.getRootPath() + nodePath.substring(1);
+    String filePath = DtcPathHelper.getFilePath(nodePath);
     DtcIni ini = new DtcIniFactory().createFrom(filePath);
     return ini;
   }
@@ -283,6 +274,15 @@ public class DtcServiceImpl extends RemoteServiceServlet implements DtcService {
   void setEntityManagerFactory(EntityManagerFactory emf) {
     System.out.println("setEntityManagerFactory() called.");
     this.emf = emf;
+  }
+
+  private void setUpParameters(HttpServletRequest req, List<DtcRequestParameter> daemonParams)
+      throws IOException, FileNotFoundException {
+    DtcIni ini = this.getIni(req.getParameter("path"));
+    for (DtcRequestProperty prop : ini.getRequestProps()) {
+      String value = req.getParameter(prop.getKey());
+      daemonParams.add(new DtcRequestParameter(prop.getKey(), null, value));
+    }
   }
 
   private void writeHtmlResponse(HttpServletResponse resp, DtcResponse response, String charset)

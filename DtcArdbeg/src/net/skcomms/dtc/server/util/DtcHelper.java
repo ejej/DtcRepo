@@ -25,6 +25,26 @@ import org.xml.sax.SAXException;
 
 public class DtcHelper {
 
+  private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat(
+      "yyyy/MM/dd HH:mm:ss");
+
+  public static final Comparator<File> NODE_COMPARATOR = new Comparator<File>() {
+
+    @Override
+    public int compare(File arg0, File arg1) {
+      if (arg0.isDirectory() != arg1.isDirectory()) {
+        if (arg0.isDirectory()) {
+          return -1;
+        } else {
+          return 1;
+        }
+      } else {
+        return arg0.getName().compareTo(arg1.getName());
+      }
+    }
+
+  };
+
   private static void appendOrigin(DtcRequest dtcRequest, StringBuilder url) {
     url.append("http://");
     url.append(dtcRequest.getRequestParameter("IP"));
@@ -61,6 +81,29 @@ public class DtcHelper {
     return url.toString();
   }
 
+  /**
+   * @param dirPath
+   *          파일이 존재하는 디렉토리 경로.
+   * @param node
+   * @return
+   * @throws IOException
+   */
+  public static DtcNodeMeta createDtcNodeMeta(File node) throws IOException {
+    DtcNodeMeta nodeMeta = new DtcNodeMeta();
+    nodeMeta.setName(node.getName());
+    if (node.isDirectory()) {
+      nodeMeta.setDescription("디렉토리");
+      nodeMeta.setPath(DtcPathHelper.getNodePath(node.getPath()) + "/");
+    } else {
+      DtcIni ini = new DtcIniFactory().createFrom(node.getPath());
+      nodeMeta.setDescription(ini.getBaseProp("DESCRIPTION").getValue());
+      nodeMeta.setPath(DtcPathHelper.getNodePath(node.getPath()));
+    }
+    String updateTime = DtcHelper.SIMPLE_DATE_FORMAT.format(new Date(node.lastModified()));
+    nodeMeta.setUpdateTime(updateTime);
+    return nodeMeta;
+  }
+
   public static String getHtmlFromXml(String xml, String encoding) {
     try {
       DtcXmlToHtmlHandler dp = new DtcXmlToHtmlHandler();
@@ -78,21 +121,6 @@ public class DtcHelper {
     }
   }
 
-  public static String getRelativePath(String path) throws IOException {
-    return path.substring(DtcHelper.getRootPath().length() - 1);
-  }
-
-  public static String getRootPath() throws IOException {
-    if (new File("/home/search/dtc").isDirectory()) {
-      return "/home/search/dtc/";
-    } else if (new File("sample/dtc").isDirectory()) {
-      return "sample/dtc/";
-    } else {
-      return "../sample/dtc/";
-    }
-
-  }
-
   public static byte[] readAllBytes(InputStream is) throws IOException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream(40960);
     byte[] buffer = new byte[4096];
@@ -101,47 +129,6 @@ public class DtcHelper {
       bos.write(buffer, 0, len);
     }
     return bos.toByteArray();
-  }
-
-  public static final Comparator<File> NODE_COMPARATOR = new Comparator<File>() {
-  
-    @Override
-    public int compare(File arg0, File arg1) {
-      if (arg0.isDirectory() != arg1.isDirectory()) {
-        if (arg0.isDirectory()) {
-          return -1;
-        } else {
-          return 1;
-        }
-      } else {
-        return arg0.getName().compareTo(arg1.getName());
-      }
-    }
-  
-  };
-
-  /**
-   * @param dirPath
-   *          파일이 존재하는 디렉토리 경로.
-   * @param node
-   * @return
-   * @throws IOException
-   */
-  public static DtcNodeMeta createDtcNodeMeta(String dirPath, File node) throws IOException {
-    DtcNodeMeta nodeMeta = new DtcNodeMeta();
-    nodeMeta.setName(node.getName());
-    if (node.isDirectory()) {
-      nodeMeta.setDescription("디렉토리");
-      nodeMeta.setPath(dirPath + node.getName() + "/");
-    } else {
-      DtcIni ini = new DtcIniFactory().createFrom(node.getPath());
-      nodeMeta.setDescription(ini.getBaseProp("DESCRIPTION").getValue());
-      nodeMeta.setPath(dirPath + node.getName());
-    }
-    String updateTime = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date(node
-        .lastModified()));
-    nodeMeta.setUpdateTime(updateTime);
-    return nodeMeta;
   }
 
 }
