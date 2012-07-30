@@ -48,7 +48,7 @@ public class DtcSearchHistory {
       if (pair.length == 0) {
         throw new IllegalArgumentException("Error: Invalid format near: " + elements[i]);
       }
-      DtcRequestParameter param = new DtcRequestParameter(pair[0], null,
+      DtcRequestParameter param = new DtcRequestParameter(pair[0], "",
           ((pair.length == 2) ? pair[1] : ""));
       params.add(param);
     }

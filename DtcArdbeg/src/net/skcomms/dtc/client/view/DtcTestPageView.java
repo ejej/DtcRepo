@@ -522,6 +522,8 @@ public class DtcTestPageView {
       records
           .add(new RequestGridRecord(index++, param.getKey(), param.getName(), param.getValue()));
     }
+    
+    records.set(index-1, new RequestGridRecord(index-1, "IP", "ip_select", params.get(index-1).getValue()));
 
     this.requestFormGrid.setData(records.toArray(new RequestGridRecord[0]));
 
