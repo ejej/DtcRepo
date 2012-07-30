@@ -514,6 +514,23 @@ public class DtcTestPageView {
   }
 
   public void updateRequest(DtcSearchHistory dtcSearchHistory) {
-    //TODO Request 필드 레코드를 다시 그려야 한다. 7/27 진행 예정
+    List<DtcRequestParameter> params = dtcSearchHistory.getParams();
+    List<RequestGridRecord> records = new ArrayList<RequestGridRecord>();
+
+    int index = 0;
+    for (DtcRequestParameter param : params) {
+      records
+          .add(new RequestGridRecord(index++, param.getKey(), param.getName(), param.getValue()));
+    }
+
+    this.requestFormGrid.setData(records.toArray(new RequestGridRecord[0]));
+
+    // add IP combo box
+    //RequestGridRecord ipRrecord = new RequestGridRecord(params.size(), "IP", "ip_select",
+    //    this.requestInfo.getIpInfo().getIpText());
+
+    //this.requestFormGrid.addData(ipRrecord);
+    this.requestFormGrid.setEditorCustomizer(this.createListGridEditorCustomizer());
+    GWT.log(dtcSearchHistory.getParams().toString());
   }
 }

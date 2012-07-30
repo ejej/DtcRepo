@@ -143,14 +143,13 @@ public class DtcTestPageController implements DtcNodeObserver, DtcTestPageModelO
     this.testPageView.setHTMLData(convertedHTML);
   }
 
-@Override
-public void onDtcTestPageViewAppeared(String path) {
-}
+  @Override
+   public void onDtcTestPageViewAppeared(String path) {
+  }
 
-@Override
-public void onHistoryGridRecordClicked(int recordNum) {
-  // TODO Auto-generated method stub
-  
-}
+  @Override
+  public void onHistoryGridRecordClicked(int recordNum) {
+    // TODO Auto-generated method stub
+  }
 
 }

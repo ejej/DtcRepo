@@ -4,13 +4,11 @@ import java.util.List;
 
 import net.skcomms.dtc.client.DtcTestPageModelObserver;
 import net.skcomms.dtc.client.DtcTestPageViewObserver;
-import net.skcomms.dtc.client.model.DtcNodeModel;
 import net.skcomms.dtc.client.model.DtcResponse;
 import net.skcomms.dtc.client.model.DtcSearchHistory;
 import net.skcomms.dtc.client.model.DtcSearchHistoryDao;
 import net.skcomms.dtc.client.model.DtcTestPageModel;
 import net.skcomms.dtc.client.view.DtcTestPageView;
-import net.skcomms.dtc.shared.DtcRequestMeta;
 import net.skcomms.dtc.shared.DtcRequestParameter;
 
 import com.google.gwt.core.client.GWT;

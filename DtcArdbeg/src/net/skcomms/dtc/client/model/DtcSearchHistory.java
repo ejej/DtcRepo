@@ -108,4 +108,8 @@ public class DtcSearchHistory {
 
     return result.toString();
   }
+
+  public List<DtcRequestParameter> getParams() {
+    return this.params;
+  }
 }
