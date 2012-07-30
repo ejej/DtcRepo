@@ -7,6 +7,7 @@ import java.util.Map;
 import net.skcomms.dtc.client.controller.DtcActivityIndicatorController;
 import net.skcomms.dtc.client.controller.DtcNodeController;
 import net.skcomms.dtc.client.controller.DtcSearchHistoryController;
+import net.skcomms.dtc.client.controller.DtcSelectTestPageController;
 import net.skcomms.dtc.client.controller.DtcTestPageController;
 import net.skcomms.dtc.client.controller.DtcUrlCopyController;
 import net.skcomms.dtc.client.model.DtcNodeModel;
@@ -14,6 +15,7 @@ import net.skcomms.dtc.client.model.DtcSearchHistoryDao;
 import net.skcomms.dtc.client.model.DtcTestPageModel;
 import net.skcomms.dtc.client.view.DtcNavigationBarView;
 import net.skcomms.dtc.client.view.DtcNodeView;
+import net.skcomms.dtc.client.view.DtcSelectTestPageView;
 import net.skcomms.dtc.client.view.DtcTestPageView;
 import net.skcomms.dtc.client.view.DtcUrlCopyButtonView;
 import net.skcomms.dtc.client.view.DtcUrlCopyDialogBoxView;
@@ -83,6 +85,8 @@ public class DtcArdbeg implements EntryPoint, DtcNodeObserver {
   private final String DTC_PROXY_URL = this.BASE_URL + "_dtcproxy_/";
 
   private final DtcTestPageView dtcTestPageView = new DtcTestPageView();
+  
+  private DtcSelectTestPageView dtcSelectTestPageView;
 
   private final DtcUserSignInView usernameSubmissionManager = new DtcUserSignInView();
 
@@ -199,11 +203,21 @@ public class DtcArdbeg implements EntryPoint, DtcNodeObserver {
     this.initializeNavigationBar();
     this.initializeTestPage();
 
+    this.initializeSelectTestPage(); // 순서 주의 initalizeTestPage 뒤에 와야함.  
     this.initializeUrlCopy();
     this.usernameSubmissionManager.initialize();
 
     this.addDtcArdbegObserver(this.dtcActivityIndicatorController);
 
+  }
+
+  private void initializeSelectTestPage() {
+    this.dtcSelectTestPageView = new DtcSelectTestPageView();
+    
+    DtcSelectTestPageController selectTestPageController = new DtcSelectTestPageController();
+    // dtcTestPageView가 이미 생성되어 있어야 한다.
+    selectTestPageController.init(dtcTestPageView, dtcSelectTestPageView);
+    
   }
 
   private void initializeDtcNodeView() {

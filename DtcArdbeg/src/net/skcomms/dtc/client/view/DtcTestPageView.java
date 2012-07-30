@@ -219,6 +219,15 @@ public class DtcTestPageView {
 
     this.layout.redraw();
     this.layout.setVisible(true);
+    
+    fireOnVisitPage();
+  }
+
+  private void fireOnVisitPage() {
+    for(DtcTestPageViewObserver observser : this.dtcTestPageViewObservers) {
+      observser.onVisitPage();
+    }
+    
   }
 
   private void fireReadyToRequest() {

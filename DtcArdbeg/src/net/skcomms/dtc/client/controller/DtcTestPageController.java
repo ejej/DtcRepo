@@ -31,7 +31,7 @@ public class DtcTestPageController implements DtcNodeObserver, DtcTestPageModelO
   private final List<DtcTestPageControllerObserver> dtcTestPageControllerObservers = new ArrayList<DtcTestPageControllerObserver>();
 
   private DtcRequestMeta requestMeta;
-
+  
   public void addObserver(DtcTestPageControllerObserver observer) {
     this.dtcTestPageControllerObservers.add(observer);
   }
@@ -100,7 +100,7 @@ public class DtcTestPageController implements DtcNodeObserver, DtcTestPageModelO
   @Override
   public void onNodeListChanged() {
   }
-
+  
   @Override
   public void onReadyRequestData() {
     this.onSearchStart();
@@ -108,7 +108,12 @@ public class DtcTestPageController implements DtcNodeObserver, DtcTestPageModelO
     DtcTestPageController.this.testPageModel.sendRequest(request);
     DtcTestPageController.this.testPageView.chronoStart();
   }
-
+  
+  @Override
+  public void onVisitPage() {
+    
+  }
+  
   @Override
   public void onRequestFailed(Throwable caught) {
     DtcTestPageController.this.testPageView.chronoStop();

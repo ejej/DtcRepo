@@ -1,5 +1,14 @@
 package net.skcomms.dtc.client.view;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import net.skcomms.dtc.client.DtcSelectTestPageViewObserver;
+import net.skcomms.dtc.client.DtcTestPageControllerObserver;
+import net.skcomms.dtc.client.controller.DtcSelectTestPageController;
+import net.skcomms.dtc.client.model.DtcVisitedPage;
+
+import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.widgets.Window;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
@@ -11,7 +20,8 @@ import com.smartgwt.client.widgets.tree.TreeGridField;
 import com.smartgwt.client.widgets.tree.TreeNode;
 
 public class DtcSelectTestPageView extends Window {
-
+  
+  private final List<DtcSelectTestPageViewObserver> dtcSelectTestPageViewObservers = new ArrayList<DtcSelectTestPageViewObserver>();
   public static class EmployeeTreeNode extends TreeNode {
 
     public EmployeeTreeNode(String employeeId, String reportsTo, String name) {
@@ -125,6 +135,7 @@ public class DtcSelectTestPageView extends Window {
 
   private void initVisitedPageListLayout() {
     this.initVisitedPageListGrid();
+    this.updateVisitedPageList();
 
     this.visitedPageListLayout = new VLayout();
     this.visitedPageListLayout.setStyleName("visitedPageLayout");
@@ -133,5 +144,21 @@ public class DtcSelectTestPageView extends Window {
     this.visitedPageListLayout.setShowEdges(true);
 
     this.visitedPageListLayout.addMember(this.visitedPageListGrid);
+  }
+  
+  private void updateVisitedPageList() {
+    // TODO Record 불러와서 visitedPageListGrid에 추가해야 함. 
+    GWT.log("update Visited Page List");
+    for(DtcSelectTestPageViewObserver observer : dtcSelectTestPageViewObservers) {
+      observer.onUpdateVisitedTestPages();
+    }
+  }
+
+  public void addObserver(DtcSelectTestPageViewObserver dtcSelectTestPageViewObserver) {
+    dtcSelectTestPageViewObservers.add(dtcSelectTestPageViewObserver);
+  }
+
+  public void updateVisitTestPageList(List<DtcVisitedPage> visitedPageList) {
+    // TODO visitedPageListGrid에 visitedPageList값을 넣어준다.     
   }
 }

@@ -12,18 +12,18 @@ public class DtcVisitedPageDao {
   private static final int MAX_PAGELIST_SIZE = 5;
 
   public static String combineKey(DtcVisitedPage visitedPage) {
-    return DtcSearchHistoryDao.combineKeyPrefix(visitedPage.getPath())
+    return DtcVisitedPageDao.combineKeyPrefix(visitedPage.getPath())
         + visitedPage.getAccessTime().getTime();
   }
 
   public static String combineKeyPrefix(String path) {
-    return DtcSearchHistoryDao.PREFIX + path + ".";
+    return DtcVisitedPageDao.PREFIX + path + ".";
   }
 
   private List<DtcVisitedPage> getAllVisitedPages(String path) {
     List<DtcVisitedPage> visitedPages = new ArrayList<DtcVisitedPage>();
     for (String key : PersistenceManager.getInstance().getItemKeys()) {
-      if (key.startsWith(DtcSearchHistoryDao.combineKeyPrefix(path))) {
+      if (key.startsWith(DtcVisitedPageDao.combineKeyPrefix(path))) {
         DtcVisitedPage visitedPage = DtcVisitedPage.deserialize(PersistenceManager.getInstance()
             .getItem(key));
         visitedPages.add(visitedPage);
